@@ -641,6 +641,7 @@
 							local	ObjName = (ReplaceChars Obj.Name),
 									Mtl = (GetStandartized Obj.Material DoSort:false),
 									MatLevelsAndSPSList = (GetMaterialLevelsAndSPSList Mtl.MaterialList)
+							if ParamSource.SaveOp then Obj = (Copy Obj)		
 							if (PrepareMeshForExport Obj Mtl MatLevelsAndSPSList) then (
 								if AllowProgress then (
 									ProgressData.x += 1
@@ -929,9 +930,7 @@
 																NeedTotalAABB = (GroupCount > 1),
 																TotalAABB = (if NeedTotalAABB then (GIMS.Core.TypeLibrary.AABB())),
 																MatBounds = #(),
-																HashFmtStr = "%,",
-																HashValueSS = (StringStream ""),
-																VertHashPropName = #HashValue,
+																VertHashToIndexMap = dotNetObject "System.Collections.Hashtable"(),
 																OldProgressData
 														Geometries.Count = GroupCount
 														MatBounds.Count = GroupCount
@@ -953,7 +952,7 @@
 																	Idx = #(),
 																	Verts = #(),
 																	GroupFaceCount = Faces.Count,
-																	GroupVertBufferSize = (GroupFaceCount * 2),
+																	GroupVertBufferSize = GroupFaceCount,
 																	IdxCount = 0,
 																	VertCount = 0
 															Idx.Count = GroupFaceCount
@@ -969,38 +968,51 @@
 																
 																	--calculate vertex hash
 																	local	PhysVertID = Face[SubVertID],
-																			ColorVertID, MapVertIDs, NormalsVertID, TangentVertID
-																	Format HashFmtStr PhysVertID To:HashValueSS
+																			ColorVertID, MapVertIDs, NormalsVertID, TangentVertID,
+																			HashValue = PhysVertID as integer,
+																			prime1 = 31,
+																			prime2 = 37
 																	if NeedColors then (
 																		ColorVertID = ColorFace[SubVertID]
-																		Format HashFmtStr ColorVertID To:HashValueSS
+																		local colorRGBA = ColorVerts[ColorVertID]
+																		if ParamSource.FixVCs then (
+																			HashValue = (HashValue * prime1) + (floor(colorRGBA[1] * 1000 + 0.5)) as integer
+																			HashValue = (HashValue * prime2) + (floor(colorRGBA[2] * 1000 + 0.5)) as integer
+																			HashValue = (HashValue * prime1) + (floor(colorRGBA[3] * 1000 + 0.5)) as integer
+																			HashValue = (HashValue * prime2) + (floor(colorRGBA[4] * 1000 + 0.5)) as integer
+																		) else (
+																			HashValue = (HashValue * prime1) + (ColorVertID as integer)
+																		)
 																	)
 																	if NeedUVs then (
 																		MapVertIDs = #()
 																		for ChID = RAWUVCount to 1 by -1 do (
 																			local	MapVertID = RAWMapFaceGroups[ChID][FaceID][SubVertID]
 																			MapVertIDs[ChID] = MapVertID
-																			Format HashFmtStr MapVertID To:HashValueSS
+																			HashValue = (HashValue * prime1) + (MapVertID as integer)
 																		)
 																	)
 																	if NeedNormals then (
 																		NormalsVertID = NormalsFace[SubVertID]
-																		Format HashFmtStr NormalVertID To:HashValueSS
+																		local normalXYZ = NormalsVectors[NormalsVertID]
+																		if ParamSource.FixNRMs then (
+																			HashValue = (HashValue * prime1) + (floor(normalXYZ.x * 1000 + 0.5)) as integer
+																			HashValue = (HashValue * prime2) + (floor(normalXYZ.y * 1000 + 0.5)) as integer
+																			HashValue = (HashValue * prime1) + (floor(normalXYZ.z * 1000 + 0.5)) as integer
+																		) else (
+																			HashValue = (HashValue * prime1) + (NormalsVertID as integer)
+																		)
 																	)
 																	if NeedTangents then (
 																		TangentVertID = TangentFace[SubVertID]
-																		Format HashFmtStr TangentVertID To:HashValueSS
-																	)
-																	local	HashValue = (HashValueSS as String)
-																	Free HashValueSS
+																		HashValue = (HashValue * prime1) + (TangentVertID as integer)
+																	)	
 																
 																	--find place for the vertex
-																	local	VertID = (QuickSearch Verts HashValue EndID:VertCount PropertyName:VertHashPropName GetInsertionPoint:true Comparator:OrderComparator)
-																	if VertID < 0 then (	--already present
-																		VertID = -VertID	--fix place index
-																		if VertID > VertCount then
-																			VertCount = VertID
-																		FaceIndices[SubVertID] = Verts[VertID]
+																	local   VertID
+																	if VertHashToIndexMap.ContainsKey(HashValue) then (	--already present
+																			VertID = VertHashToIndexMap.Item[HashValue]
+																			FaceIndices[SubVertID] = VertID
 																	) else (	--new vertex
 																			
 																		--collect vertex data
@@ -1036,7 +1048,6 @@
 																							SkinBones:RAWSkinBones[PhysVertID] \
 																							SkinWeights:RAWSkinWeights[PhysVertID] \
 																							UVCoords:UVCoords \
-																							HashValue:HashValue \
 																					) else (
 																						grcMeshVertex \
 																							Position:Pos \
@@ -1044,30 +1055,30 @@
 																							TheColor:VertColor \
 																							Tangent:Tangent \
 																							UVCoords:UVCoords \
-																							HashValue:HashValue \
 																					)
 																				)																		
-																		PreallocatedInsertItem TempVertex Verts VertID VertCount
-																		FaceIndices[SubVertID] = TempVertex
+																	Verts[VertCount] = TempVertex
+																	FaceIndices[SubVertID] = VertCount
+																	VertHashToIndexMap.Add HashValue VertCount
 																	)
 																)
 																IdxCount += 1
 																Idx[IdxCount] = FaceIndices
 																
-																--preallocate vertex buffer
+																/*--preallocate vertex buffer
 																if VertCount > (GroupVertBufferSize - 3) then (
 																	GroupVertBufferSize += GroupFaceCount
 																	Verts.Count = GroupVertBufferSize
-																)
+																)*/
 															)
 															
-															--restore vert indices
+															/*--restore vert indices
 															for i = 1 to VertCount do
 																Verts[i].CollectionIndex = i
 															for FaceIdx in Idx do (
 																for i = 1 to 3 do
 																	FaceIdx[i] = FaceIdx[i].CollectionIndex
-															)
+															)*/
 															
 															--create geometry
 															local	Positions = #(),
@@ -1204,6 +1215,7 @@
 															for i = 1 to VertCount do
 																Verts[i].Dispose()
 															Free Verts
+															VertHashToIndexMap.Clear()
 														)
 														if AllowProgress then
 															ProgressData = OldProgressData
@@ -1301,6 +1313,7 @@
 								) else
 									UpdateProgress #None 0
 							)
+							if ParamSource.SaveOp then Delete Obj
 						)
 						EGIMS_MP3_TexDict: (
 							local	ObjList = ParamSource.ObjList

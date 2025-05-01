@@ -3351,12 +3351,16 @@
 									local	TriCount = 0,
 											FGetFaceDeg = PolyOp.GetFaceDeg
 									for i = 1 to Obj.NumFaces do (
-										local fDegree = (FGetFaceDeg Obj i)
-										TriCount += (
-											if fDegree > 3 then
-												(fDegree - 2)
-											else
-												1
+										if not (PolyOp.isFaceDead Obj i) then (
+											local fDegree = (FGetFaceDeg Obj i)
+											if fDegree != undefined then (
+												TriCount += (
+													if fDegree > 3 then
+														(fDegree - 2)
+													else
+														1
+												)
+											)
 										)
 									)
 									TriCount

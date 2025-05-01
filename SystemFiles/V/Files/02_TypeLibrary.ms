@@ -1604,7 +1604,9 @@
 				local	NormalTrans = (MatrixFromNormal BaseNormal),
 						ModAngle = (((EulerAngles 0 90 0) as Quat) * NormalTrans),
 						RotatedUpNormal = (Normalize (BaseNormal * ModAngle)),
-						AngleDiff = ACos(Dot RotatedUpNormal BaseRotateNormal),
+						AngleDiff = (
+							local AD = ACos(Dot RotatedUpNormal BaseRotateNormal)
+								if not bit.isFinite AD then 180 else AD),
 						RotPlusTrans = ((RotateZMatrix AngleDiff) * NormalTrans),
 						RotMinusTrans = ((RotateZMatrix (-AngleDiff)) * NormalTrans),
 						RotPlusDistance = (Length (Cross CheckingNormal ([0, 1, 0] * RotPlusTrans))),
@@ -1896,7 +1898,7 @@
 							
 							/**/
 							
-							ParamHolder = (EGIMS_V_CollisionMesh Type:(Ternary IsBVH 1 2) VertexOffset_UnkPart:VertexOffset_UnkPart)
+							ParamHolder = (EGIMS_V_CollisionMesh Type:(Ternary IsBVH 1 2) VertexOffset_UnkPart:VertexOffset_UnkPart SaveOp:false)
 							AddModifier Result ParamHolder
 							
 							--create primitives
@@ -3789,7 +3791,7 @@
 									GeometryFlags[FlagID] = true
 							)
 							TempMesh.Material = MMtl
-							AddModifier TempMesh (EGIMS_V_ModelMesh Type:LODGrpID Mask:tMesh.Mask)
+							AddModifier TempMesh (EGIMS_V_ModelMesh Type:LODGrpID Mask:tMesh.Mask FixVCs:false FixNRMs:false SaveOp:false)
 						)
 					)
 				)
@@ -4223,7 +4225,7 @@
 		CoronaIntensity = 1,
 		CoronaZBias = 0.1,
 		Direction = [0, 0, -1],
-		Tangent = [1, 0, 0],
+		Tangent = [-1, 0, 0],
 		ConeInnerAngle = 0,
 		ConeOuterAngle = 0,
 		Extents = [1, 1, 1],
@@ -4304,7 +4306,7 @@
 							CoronaZBias = (TypeCast tLine[2] Float BufferID:BufferID)
 						#Direction:		--[0, 0, -1],
 							Direction = (oFTypeExec tLine #P3 IDMask:#{2..4} BufferID:BufferID)
-						#Tangent:		--[1, 0, 0],
+						#Tangent:		--[-1, 0, 0],
 							Tangent = (oFTypeExec tLine #P3 IDMask:#{2..4} BufferID:BufferID)
 						#ConeInnerAngle:		--0,
 							ConeInnerAngle = (TypeCast tLine[2] Float BufferID:BufferID)
@@ -4368,7 +4370,7 @@
 				WriteVal BufferID (FormatText v1:SubTabString v2:"ConeInnerAngle " v3:ConeInnerAngle)
 				WriteVal BufferID (FormatText v1:SubTabString v2:"ConeOuterAngle " v3:ConeOuterAngle)
 				WriteVal BufferID (AsoFText Extents TabString:(SubTabString + "Extents "))
-				WriteVal BufferID (FormatText v1:SubTabString v2:"ProjectedTextureHash " v3:(FormattedPrint ProjectedTextureHash format:dwFmt))
+				WriteVal BufferID (FormatText v1:SubTabString v2:"ProjectedTextureHash " v3:ProjectedTextureHash)
 				WriteVal BufferID (TabString + "}")
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
 			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
@@ -4410,14 +4412,23 @@
 						Dir = ((Normalize (-Direction)) * ParentRotation),
 						DirMtx = (MatrixFromNormal Dir),
 						CPVec = ((Normalize [CullingPlane[1], CullingPlane[2], CullingPlane[3]]) * ParentRotation),
-						CPMtx = ((MatrixFromNormal CPVec) * (Inverse DirMtx)),
-						CPAngles = (TypeCast (CPMtx.Rotation as EulerAngles) #Array)
+						--CPMtx = ((MatrixFromNormal CPVec) * (Inverse DirMtx)),
+						CPMtx = (MatrixFromNormal CPVec),
+						CPAngles = (TypeCast (CPMtx.Rotation as EulerAngles) #Array),
+						
+						TngVec = ((Normalize (Tangent)) * ParentRotation),
+						TngMtx = (MatrixFromNormal TngVec),
+						TngAngles = (TypeCast (TngMtx.Rotation as EulerAngles) #Array)
+						
 				ValueOps.ConvertStruct Result undefined ParamSource:ThisObj DontCreate:true
-				Result.Pos = Pos
-				Result.Dir = Dir
+				/*Result.Pos = Pos
+				Result.Dir = Dir*/
+				Result.Transform = (matrix3 DirMtx[1] DirMtx[2] DirMtx[3] Pos)
 				Result.TheExtents = Extents[1]
 				Result.TheDistance = LightFadeDistance
+				Result.GenerateName = false
 				Result.ProjectedTextureName = (GIMS.Core.ArrayOps.FetchMHL GIMS.CurrentGame.Core.DB.TextureNames ProjectedTextureHash)
+				Result.ProjTexHash = (formattedPrint ProjectedTextureHash format:"u")		
 				Result.Type = (
 					case LightType of (
 						1:
@@ -4432,6 +4443,10 @@
 				)
 				Result.CustomCullingPlane = true
 				Result.CPDistance = CullingPlane[4]
+				Result.CPAngles = CPAngles
+
+				Result.CustomTng = true
+				Result.TngAngles = TngAngles
 				/*
 				local	ResultCPAngles = Result.CPAngles
 				for i = 1 to ResultCPAngles.Count do
@@ -4576,13 +4591,17 @@
 			"DXT5",
 			"DXT3",
 			"DXT1",
-			"A8R8G8B8"
+			"A8R8G8B8",
+			"ATI2",
+			"ATI1"
 		),
 		PixelFormatNames = #(
 			#DXT5,
 			#DXT3,
 			#DXT1,
-			#A8R8G8B8
+			#A8R8G8B8,
+			#ATI2,
+			#ATI1
 		),
 		KnownUsages = #(
 			#UNKNOWN,
@@ -4685,7 +4704,7 @@
 						#PixelFormat: (
 							PixelFormatID = (FindItem PixelFormatNames (TypeCast tLine[2] name BufferID:BufferID))
 							if PixelFormatID == 0 then
-								PixelFormatID = 4
+								PixelFormatID = 6
 								--EGIMS_EHAbort ("Unknown PixelFormat \"" + tLine[2] as String + "\" in object \"" + ObjName + "\" found!") BufferID:BufferID
 						)
 						#Usage: (

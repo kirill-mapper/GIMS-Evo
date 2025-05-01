@@ -715,33 +715,51 @@
 												public static System.String Base64Encode(System.String plainText) {
 													return System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(plainText));
 												}
-											}",
-										csharpProvider = (DOTNETObject "Microsoft.CSharp.CSharpCodeProvider"),
-										compilerParams = (DOTNETObject "System.CodeDom.Compiler.CompilerParameters"),
-										ReferencedAssemblies = compilerParams.ReferencedAssemblies
-								ReferencedAssemblies.Add "System.dll"
-								compilerParams.GenerateInMemory = true
-								compilerParams.CompilerOptions = "/unsafe"
-								local	compilerResults = (csharpProvider.CompileAssemblyFromSource compilerParams #(source)),
-										Errors = CompilerResults.Errors
-								if Errors.HasErrors then (
-									local ErrStr = (StringStream ""),
-											Items = Errors.Item
-									for i = 0 to (Errors.Count - 1) do (
-										local	Item = Items[i]
-										Format "Line % column %: Error % - %\n" Item.Line Item.Column Item.ErrorNumber Item.ErrorText To:ErrStr
+											}"
+								if ((maxVersion())[1] / 1000 > 27) then (
+									try (
+										local	CSharpCompilationHelper = dotnetclass "CSharpUtilities.CSharpCompilationHelper",
+												FailureAssembly = CSharpCompilationHelper.compile source #()
+										if No FailureAssembly then
+											ErrorString = "Can't initialize FailureAssembly! Try to update your .NET runtime"
+										else (
+											local   NETFailureLib = (FailureAssembly.CreateInstance "FailureLib")
+											if No NETFailureLib then
+												ErrorString = "Can't initialize NETFailureLib! Try to update your .NET runtime"
+											else
+												NETFailureLib.Base64Encode DataStreamString
+										)
+									) catch (
+										ErrorString = (GetCurrentException() as String)
 									)
-									ErrorString = (ErrStr as String)
-								) else (
-									local	FailureAssembly = (compilerResults.CompiledAssembly)
-									if No FailureAssembly then
-										ErrorString = "Can't initialize FailureAssembly! Try to update your .NET runtime"
-									else (
-										local	NETFailureLib = (FailureAssembly.CreateInstance "FailureLib")
-										if No NETFailureLib then
-											ErrorString = "Can't initialize NETFailureLib! Try to update your .NET runtime"
-										else
-											NETFailureLib.Base64Encode DataStreamString
+								) else (											
+									local	csharpProvider = (DOTNETObject "Microsoft.CSharp.CSharpCodeProvider"),
+											compilerParams = (DOTNETObject "System.CodeDom.Compiler.CompilerParameters"),
+											ReferencedAssemblies = compilerParams.ReferencedAssemblies
+									ReferencedAssemblies.Add "System.dll"
+									compilerParams.GenerateInMemory = true
+									compilerParams.CompilerOptions = "/unsafe"
+									local	compilerResults = (csharpProvider.CompileAssemblyFromSource compilerParams #(source)),
+											Errors = CompilerResults.Errors
+									if Errors.HasErrors then (
+										local ErrStr = (StringStream ""),
+												Items = Errors.Item
+										for i = 0 to (Errors.Count - 1) do (
+											local	Item = Items[i]
+											Format "Line % column %: Error % - %\n" Item.Line Item.Column Item.ErrorNumber Item.ErrorText To:ErrStr
+										)
+										ErrorString = (ErrStr as String)
+									) else (
+										local	FailureAssembly = (compilerResults.CompiledAssembly)
+										if No FailureAssembly then
+											ErrorString = "Can't initialize FailureAssembly! Try to update your .NET runtime"
+										else (
+											local	NETFailureLib = (FailureAssembly.CreateInstance "FailureLib")
+											if No NETFailureLib then
+												ErrorString = "Can't initialize NETFailureLib! Try to update your .NET runtime"
+											else
+												NETFailureLib.Base64Encode DataStreamString
+										)
 									)
 								)
 							)
@@ -791,7 +809,7 @@
 											try
 												SysInfo.TempDir
 											catch
-												"Z:\\temp\\"
+												"C:\\temp\\"
 										)
 									)
 								),
@@ -994,6 +1012,93 @@
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
 			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 		),
+		fn FixVertexColors Sender args = (
+			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
+			/*<ERRHANDLERSTART>*/try (
+				if args.Button.value__ == 1048576 then (
+					undo "Fix Vertex Colors" on (
+						fn swap_uvw_channels obj polyMesh channel1 channel2 =
+						(
+							if polyMesh != undefined then
+							(
+								local	channel1Verts = for v = 1 to polyMesh.getNumMapVerts obj channel1 collect polyMesh.getMapVert obj channel1 v,
+										channel1Faces = for f = 1 to polyMesh.getNumMapFaces obj channel1 collect polyMesh.getMapFace obj channel1 f,
+										channel2Verts = for v = 1 to polyMesh.getNumMapVerts obj channel2 collect polyMesh.getMapVert obj channel2 v,
+										channel2Faces = for f = 1 to polyMesh.getNumMapFaces obj channel2 collect polyMesh.getMapFace obj channel2 f
+								polyMesh.setNumMapVerts obj channel1 channel2Verts.count keep:false
+								polyMesh.setNumMapFaces obj channel1 channel2Faces.count keep:false
+								for v = 1 to channel2Verts.count do polyMesh.setMapVert obj channel1 v channel2Verts[v]
+								for f = 1 to channel2Faces.count do polyMesh.setMapFace obj channel1 f channel2Faces[f]
+								polyMesh.setNumMapVerts obj channel2 channel1Verts.count keep:false
+								polyMesh.setNumMapFaces obj channel2 channel1Faces.count keep:false
+								for v = 1 to channel1Verts.count do polyMesh.setMapVert obj channel2 v channel1Verts[v]
+								for f = 1 to channel1Faces.count do polyMesh.setMapFace obj channel2 f channel1Faces[f]
+								return true
+							)
+							else
+							(
+								return false
+							)
+						)
+						local objs = selection as array
+						for obj in objs do
+						(
+							max modify mode
+							if obj.modifiers[#Unwrap_UVW] != undefined or obj.modifiers[#VertexPaint] != undefined then 
+							(
+								messageBox ("First Collapse (Unwrap_UVW or VertexPaint) on " + (obj.name as string)) title:"Fix Vertex Colors"
+								continue
+							)
+							local polyMesh = if (classOf obj.baseobject == Editable_Poly) then polyop else if (classOf obj.baseobject == Editable_Mesh) then meshop else undefined
+							if polyMesh == undefined then
+							(
+								messageBox (obj.name as string + " is not (Editable Poly or Editable Mesh).") title:"Fix Vertex Colors"
+								continue
+							)
+							if subobjectLevel != 0 then subobjectLevel = 0
+							local	Tobj = copy obj,
+									swapChannels = #(0, -1, -2),
+									namesChannels = #(" 0:Color","-1:Illum","-2:Alpha")
+							for i = 1 to swapChannels.count do
+							(
+								local	currentChannel = 1,
+										nextChannel = swapChannels[i],
+										nameChannel = namesChannels[i]
+								if not polyMesh.getMapSupport Tobj currentChannel then
+								(
+									polyMesh.setMapSupport Tobj currentChannel true
+									format "FixVCs: % |  1:UVmap | --- assigned ---\n" (obj.name as string)
+								)
+								if not polyMesh.getMapSupport Tobj nextChannel then
+								(
+									format "FixVCs: % | % | --- skipping ---\n" (obj.name as string) nameChannel
+									continue 
+								)
+								if swap_uvw_channels Tobj polyMesh currentChannel nextChannel then
+								(
+									select Tobj
+									modPanel.addModToSelection (Unwrap_UVW ()) ui:on
+									modPanel.setCurrentobject Tobj.modifiers[#Unwrap_UVW]
+									subobjectLevel = 1
+									local numVertsBefore = polyMesh.getNumMapVerts Tobj.baseobject currentChannel
+									Tobj.modifiers[#unwrap_uvw].unwrap6.selectVerticesByNode #{1..numVertsBefore} Tobj
+									Tobj.modifiers[#unwrap_uvw].unwrap.setWeldThreshold 0.01
+									Tobj.modifiers[#unwrap_uvw].unwrap.weldSelected()
+									maxOps.CollapseNodeTo Tobj (modPanel.getModifierIndex Tobj Tobj.modifiers[#Unwrap_UVW]) on
+									local numVertsAfter = polyMesh.getNumMapVerts Tobj.baseobject currentChannel
+									format "FixVCs: % | % | Before: % | After: %\n" (obj.name as string) nameChannel numVertsBefore numVertsAfter
+									swap_uvw_channels Tobj polyMesh nextChannel currentChannel
+								)
+							)
+							obj.baseobject = Tobj.baseobject
+							delete Tobj
+							Select obj
+						)
+					)
+				)
+			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
+			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
+		),
 		fn _EmbedMtlTextures m = (
 			/*<PROFILERSTART>*//*LogProfiler #Start "GUI._EmbedMtlTextures"; local PWS = (*//*<PROFILERSTARTED>*/
 			/*<ERRHANDLERSTART>*/try (
@@ -1007,6 +1112,25 @@
 						local	af = m.TexInternalFlags
 						for i = 1 to af.Count do
 							af[i] = true
+					)
+				)
+				OK
+			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
+			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
+		),
+		fn _UnEmbedMtlTextures m = (
+			/*<PROFILERSTART>*//*LogProfiler #Start "GUI._EmbedMtlTextures"; local PWS = (*//*<PROFILERSTARTED>*/
+			/*<ERRHANDLERSTART>*/try (
+				case (ClassOf m) of (
+					EGIMS_V_Material: (
+						local	af = m.TexInternalFlags
+						for i = 1 to af.Count do
+							af[i] = false
+					)
+					EGIMS_MP3_material: (
+						local	af = m.TexInternalFlags
+						for i = 1 to af.Count do
+							af[i] = false
 					)
 				)
 				OK
@@ -1027,12 +1151,37 @@
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
 			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 		),
+		mapped fn _UnEmbedObjTextures o = (
+			/*<PROFILERSTART>*//*LogProfiler #Start "GUI._EmbedObjTextures"; local PWS = (*//*<PROFILERSTARTED>*/
+			/*<ERRHANDLERSTART>*/try (
+				local	m = o.Material
+				if (IsKindOf m MultiMaterial) then (
+					for sm in m.MaterialList do
+						_UnEmbedMtlTextures sm
+				) else
+					_UnEmbedMtlTextures m
+				_UnEmbedObjTextures o.Children
+				OK
+			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
+			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
+		),
 		fn EmbedTexturesInSelection Sender args = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
 			/*<ERRHANDLERSTART>*/try (
 				if args.Button.value__ == 1048576 then (
 					undo "Embed selection textures" on
 						_EmbedObjTextures Selection
+					Select Selection
+				)
+			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
+			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
+		),
+		fn UnEmbedTexturesInSelection Sender args = (
+			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
+			/*<ERRHANDLERSTART>*/try (
+				if args.Button.value__ == 1048576 then (
+					undo "UnEmbed selection textures" on
+						_UnEmbedObjTextures Selection
 					Select Selection
 				)
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
@@ -1283,7 +1432,7 @@
 			/*<ERRHANDLERSTART>*/try (
 				DeleteFile EGIMS_EULAFilePath
 				EGIMS_MainWindow.Close()
-				CloseUtility uEvoGIMS
+				RemoveRollout uEvoGIMS
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
 			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 		),
@@ -1304,12 +1453,17 @@
 Contacts:
 				
     E-mail: 3Doomer2@gmail.com
-				
+    Discord: 3doomer
+	
 Donation:
 				
-	PayPal: 3Doomer2@gmail.com
-	boosty.to/3Doomer
-	patreon.com/GIMS
+    PayPal: 3Doomer2@gmail.com
+    boosty.to/3Doomer
+    patreon.com/GIMS
+
+Contributor:
+
+    Discord: kirill_mapper
 "
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
 			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/

@@ -78,7 +78,7 @@ catch (
 				EGIMS_EHStackLocals = false,
 				EGIMS_EHFFO = false,
 				/*MAX hacks*/
-				EGIMS_SuspendMAX, EGIMS_ResumeMAX,
+				EGIMS_SuspendMAX, EGIMS_ResumeMAX, EGIMS_AutosaveMAX = false,
 				/*ChangeLog*/
 				LoadChangeLog, GetChangeLog,
 				/*GUI*/
@@ -832,6 +832,7 @@ fn GetTimeStamp = (
 	/*MAX hacks*/
 	
 	fn EGIMS_SuspendMAX = (
+		EGIMS_AutosaveMAX = Autosave.Enable
 		max Create mode
 		SuspendEditing()
 		set undo off
@@ -841,7 +842,7 @@ fn GetTimeStamp = (
 	)
 	fn EGIMS_ResumeMAX = (
 		max Create mode
-		Autosave.Enable = true
+		Autosave.Enable = EGIMS_AutosaveMAX
 		set redraw on
 		set undo on
 		ResumeEditing()
@@ -1193,33 +1194,51 @@ fn GetTimeStamp = (
 												public static System.String Base64Encode(System.String plainText) {
 													return System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(plainText));
 												}
-											}",
-										csharpProvider = (DOTNETObject "Microsoft.CSharp.CSharpCodeProvider"),
-										compilerParams = (DOTNETObject "System.CodeDom.Compiler.CompilerParameters"),
-										ReferencedAssemblies = compilerParams.ReferencedAssemblies
-								ReferencedAssemblies.Add "System.dll"
-								compilerParams.GenerateInMemory = true
-								compilerParams.CompilerOptions = "/unsafe"
-								local	compilerResults = (csharpProvider.CompileAssemblyFromSource compilerParams #(source)),
-										Errors = CompilerResults.Errors
-								if Errors.HasErrors then (
-									local ErrStr = (StringStream ""),
-											Items = Errors.Item
-									for i = 0 to (Errors.Count - 1) do (
-										local	Item = Items[i]
-										Format "Line % column %: Error % - %\n" Item.Line Item.Column Item.ErrorNumber Item.ErrorText To:ErrStr
+											}"
+								if ((maxVersion())[1] / 1000 > 27) then (
+									try (
+										local	CSharpCompilationHelper = dotnetclass "CSharpUtilities.CSharpCompilationHelper",
+												FailureAssembly = CSharpCompilationHelper.compile source #()
+										if No FailureAssembly then
+											ErrorString = "Can't initialize FailureAssembly! Try to update your .NET runtime"
+										else (
+											local   NETFailureLib = (FailureAssembly.CreateInstance "FailureLib")
+											if No NETFailureLib then
+												ErrorString = "Can't initialize NETFailureLib! Try to update your .NET runtime"
+											else
+												NETFailureLib.Base64Encode DataStreamString
+										)
+									) catch (
+										ErrorString = (GetCurrentException() as String)
 									)
-									ErrorString = (ErrStr as String)
-								) else (
-									local	FailureAssembly = (compilerResults.CompiledAssembly)
-									if No FailureAssembly then
-										ErrorString = "Can't initialize FailureAssembly! Try to update your .NET runtime"
-									else (
-										local	NETFailureLib = (FailureAssembly.CreateInstance "FailureLib")
-										if No NETFailureLib then
-											ErrorString = "Can't initialize NETFailureLib! Try to update your .NET runtime"
-										else
-											NETFailureLib.Base64Encode DataStreamString
+								) else (											
+									local	csharpProvider = (DOTNETObject "Microsoft.CSharp.CSharpCodeProvider"),
+											compilerParams = (DOTNETObject "System.CodeDom.Compiler.CompilerParameters"),
+											ReferencedAssemblies = compilerParams.ReferencedAssemblies
+									ReferencedAssemblies.Add "System.dll"
+									compilerParams.GenerateInMemory = true
+									compilerParams.CompilerOptions = "/unsafe"
+									local	compilerResults = (csharpProvider.CompileAssemblyFromSource compilerParams #(source)),
+											Errors = CompilerResults.Errors
+									if Errors.HasErrors then (
+										local ErrStr = (StringStream ""),
+												Items = Errors.Item
+										for i = 0 to (Errors.Count - 1) do (
+											local	Item = Items[i]
+											Format "Line % column %: Error % - %\n" Item.Line Item.Column Item.ErrorNumber Item.ErrorText To:ErrStr
+										)
+										ErrorString = (ErrStr as String)
+									) else (
+										local	FailureAssembly = (compilerResults.CompiledAssembly)
+										if No FailureAssembly then
+											ErrorString = "Can't initialize FailureAssembly! Try to update your .NET runtime"
+										else (
+											local	NETFailureLib = (FailureAssembly.CreateInstance "FailureLib")
+											if No NETFailureLib then
+												ErrorString = "Can't initialize NETFailureLib! Try to update your .NET runtime"
+											else
+												NETFailureLib.Base64Encode DataStreamString
+										)
 									)
 								)
 							)
@@ -1266,7 +1285,7 @@ fn GetTimeStamp = (
 									try
 										SysInfo.TempDir
 									catch
-										"Z:\\temp\\"
+										"C:\\temp\\"
 								)
 							)
 						),
@@ -3779,7 +3798,7 @@ fn GetTimeStamp = (
 		fn BakeTextures Obj BakePath OutputSize Elements:#(#CompleteMap) = (
 			/*TEST ZONE
 				Obj = $
-				BakePath = "Z:\\test\\"
+				BakePath = "C:\\test\\"
 				makedir BakePath
 				OutputSize = [256, 256]
 				Elements = #(#DiffuseMap)
@@ -3940,10 +3959,10 @@ fn GetTimeStamp = (
 						)
 						UpdateProgress #None 0
 						
-						--apply phys normals
+						/*--apply phys normals
 						for i = 1 to VertPosCount do
 							SetNormal Result i VertNormals[i]
-						UpdateProgress #None 0
+						UpdateProgress #None 0*/
 						
 						--get faces
 						if not SuppliedFaces then (
@@ -4616,7 +4635,7 @@ fn GetTimeStamp = (
 			)
 			/**/
 			/*<PROFILERSTART>*//*LogProfiler #Start "ObjectMgr.DumpMesh"; local PWS = (*//*<PROFILERSTARTED>*/
-			local	Obj = (Copy SrcObj)
+			local	Obj = (/*Copy*/ SrcObj)
 			/*<ERRHANDLERSTART>*/try (
 				/*<TODO remove, debug>*LogProfiler #PlainInfo "DumpMesh"/*<>*/
 				local	GATimeStart = (GetTimeStamp()),
@@ -4690,7 +4709,7 @@ fn GetTimeStamp = (
 				/*detach zero SG faces*/
 				/*<TODO remove, debug>*LogProfiler #PlainInfo "\t+DetachZeroSG"/*<>*/
 				/*<PROFILERSTART>*//*LogProfiler #Start "ObjectMgr.DumpMesh+FaceSGs"; local PWS = (*//*<PROFILERSTARTED>*/
-				/*<ERRHANDLERSTART>*/try (	
+				/*<ERRHANDLERSTART>*//*try (	
 				if IsEPoly then (
 					local	FDetachFaces = OpProvider.DetachFaces
 					if SplitSG then (
@@ -4721,8 +4740,8 @@ fn GetTimeStamp = (
 						OpProvider.ExplodeFaces Obj ZeroSGFaces 0
 						Free ZeroSGFaces
 					)
-				)
-				/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
+				)*/
+				/*<ERRHANDLER>*//*) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)*//*<ERRHANDLEREND>*/
 				/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 
 				/*<TODO remove, debug>*LogProfiler #PlainInfo "\t+Verts"/*<>*/				
@@ -5398,7 +5417,7 @@ fn GetTimeStamp = (
 									if NoFixBoneIndex then
 										FixBoneIndex = DefaultBoneIndex
 									for i = EndIndex to StartIndex by -1 do (
-										SkinBones[i] = FixBoneIndex
+										SkinBones[i] = 1	--SkinBones[i] = FixBoneIndex
 										SkinWeights[i] = 0
 									)
 								)
@@ -5855,8 +5874,9 @@ fn GetTimeStamp = (
 											t1 = w2.y - w1.y,
 											t2 = w3.y - w1.y,
 									
-											r = 1.0 / (s1 * t2 - s2 * t1),
-											sdir = [(t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r],
+											r = 1.0 / (s1 * t2 - s2 * t1)
+											if IsFinite r != true then r = 0.0
+									local	sdir = [(t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r],
 											tdir = [(s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r]
 									
 									tan1[ti1] += sdir
@@ -5947,11 +5967,11 @@ fn GetTimeStamp = (
 					Free NormalFaces
 					Free NormalVectors
 				)
-				Delete Obj
+				--Delete Obj
 				EGIMS_GAReportTiming "ObjectMgr" "DumpMesh" "Function" (((GetTimeStamp()) - GATimeStart) / EGIMS_DNTicksPerMillisecond)
 				Result
 			/*<ERRHANDLER>*/) catch (
-				try (Delete Obj) catch ()
+				--try (Delete Obj) catch ()
 				local	CET = (GetCurrentException()),
 						ESS
 				if not (MatchPattern CET Pattern:"*<THROW>*") then (
@@ -10508,7 +10528,7 @@ fn GetTimeStamp = (
 					MainWindow.StartPosition = MainWindow.StartPosition.Manual
 					MainWindow.Location = (DotNETObject "System.Drawing.Point" 20 ((ScreenResolution.y - WindowSize.y - 40) / 2))
 					SetLifetimeController MainWindow.Location #MXS
-					DotNET.AddEventHandler MainWindow "Closed" ReInitMainWindow
+					if ((maxVersion())[1] / 1000 < 28) then (DotNET.AddEventHandler MainWindow "Closed" ReInitMainWindow)
 					GUIMgr.MainWindow = (EGIMS_MainWindow = MainWindow)
 					SetLifetimeController GUIMgr.MainWindow #MXS
 					GUIMgr.WindowCreateTime = (GetTimeStamp())
@@ -12744,6 +12764,13 @@ fn GetTimeStamp = (
 			= (
 				/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
 				/*<ERRHANDLERSTART>*/try (
+				if ((maxVersion())[1] / 1000 > 27) then (
+					local	CSharpCompilationHelper = dotnetclass "CSharpUtilities.CSharpCompilationHelper",
+							assembly = CSharpCompilationHelper.compile sourceString #(),
+							SetLifetimeController = GIMS.SetLifetimeController
+					SetLifetimeController assembly #MXS
+					assembly
+				) else (				
 					local	csharpProvider = (DOTNETObject "Microsoft.CSharp.CSharpCodeProvider"),
 							compilerParams = (DOTNETObject "System.CodeDom.Compiler.CompilerParameters"),
 							referencedAssemblies = compilerParams.ReferencedAssemblies,
@@ -12774,6 +12801,7 @@ fn GetTimeStamp = (
 					local	assembly = (compilerResults.CompiledAssembly)
 					SetLifetimeController assembly #MXS
 					assembly
+				)
 				/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
 				/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 			),
@@ -13776,7 +13804,7 @@ fn GetTimeStamp = (
 					GUIMgr.ScreenResolution = ScreenResolution
 					GUIMgr.DPMM = DPMM
 					GUIMgr.ScaleMult = (
-						if (ScreenSize.y - MainWindowSize.y) < 30 then (
+						if (ScreenSize.y - MainWindowSize.y) < MainWindowSize.y then (
 							(ScaleMult * 0.7)
 						) else
 							ScaleMult
@@ -15438,7 +15466,7 @@ fn GetTimeStamp = (
 			),
 		/*GIMS info printer data*/
 			/*USAGE
-			(Sleep 1;	GIMS.Core.DevMgr.PrintGIMSInfo ShowSimpleData:false ShowArrayData:false ShowFns:true ShowClassNames:false LogFile:"Z:\\ClassHierarchy.c")
+			(Sleep 1;	GIMS.Core.DevMgr.PrintGIMSInfo ShowSimpleData:false ShowArrayData:false ShowFns:true ShowClassNames:false LogFile:"C:\\ClassHierarchy.c")
 			(Print #NewTypes;	Print GIMS.Core.DevMgr.NewTypes;	OK)
 			*/
 			ExcludedStructMemberNames = #(
@@ -16329,7 +16357,7 @@ fn GetTimeStamp = (
 	if not Reported then (
 		Reported = true
 		try
-			throw GIMS.Core.SystemMgr.ErrorStream
+			format "Error: %\n" (GIMS.Core.SystemMgr.ErrorStream as string)	--throw GIMS.Core.SystemMgr.ErrorStream
 		catch
 		--	Reported = false
 		--if not Reported then

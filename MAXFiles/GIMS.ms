@@ -6,20 +6,35 @@ global	FailText = "Can't load GIMS! Error:\n\n",
 if HiddenDOSCommand != undefined then (
 global	GIMS, uEvoGIMS, EGIMS_LangSelectRollout
 UtilityDummySource = (
-	"utility UtilityDummy" +
+	"rollout UtilityDummy" +
 	((TimeStamp()) as String) +
 	" \"UtilityDummy\" (\n)"
 )
 UtilityDummy = (Execute UtilityDummySource)
-OpenUtility UtilityDummy
+AddRollout UtilityDummy
 global	UtilityWidth = UtilityDummy.Width
-CloseUtility UtilityDummy
+RemoveRollout UtilityDummy
 UtilityDummy = undefined
-try (CloseUtility uEvoGIMS)	catch ()
+try (EGIMS_MainWindow.Close()
+RemoveRollout uEvoGIMS)	catch ()
 uEvoGIMS = undefined
 try (DestroyDialog EGIMS_LangSelectRollout)	catch ()
 rollout EGIMS_LangSelectRollout "EGIMS_LangSelectRollout" Width:200 Height:31 (
 )
+
+global CallstackCapture
+(
+	struct CallstackCaptureStruct
+	(
+	private
+		_canset = (maxVersion())[1] / 1000 > 18,
+	public
+		fn canSet = _canset,
+		fn enable = if _canset do execute "set MXSCallstackCaptureEnabled on",
+		fn disable = if _canset do execute "set MXSCallstackCaptureEnabled off"
+	)
+	CallstackCapture = CallstackCaptureStruct()
+)	
 
 global	TempScriptPath = (Append ScriptsPath "Startup\\"),
 		EGIMS_CoreConfigFileName = "GIMS.ccf",
@@ -1246,6 +1261,7 @@ if (DoesFileExist EGIMS_CoreConfigFile) then (
 								)
 								fn StartGame Game Buttons = (
 									if GIMS.CanExec then (
+										CallstackCapture.disable()
 										local	ImageControl = GIMS.GUI.ImageControl
 										ImageControl Buttons[3] #Active #Launch
 										Game.Start Game
@@ -1288,12 +1304,19 @@ if (DoesFileExist EGIMS_CoreConfigFile) then (
 								on InfoButton pressed do (
 									/*<ERRHANDLERSTART>*/try (
 										if GIMS.CanExec then
+											CallstackCapture.disable()
 											GIMS.Core.GUIMgr.SetWindow GIMS.Shared #GIMSInfo
 									/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:\"*<THROW>*\") then (ESS = (StringStream \"\");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHReport CET ESS)/*<ERRHANDLEREND>*/
 								)
 								on LangButton pressed do (
 									if GIMS.CanExec then
 										CreateDialog EGIMS_LangSelectRollout
+								)
+								on uEvoGIMS rolledUP state do (
+								%
+								)
+								on uEvoGIMS open do (
+								uEvoGIMS.open = true
 								)
 							)
 							/*<ERRHANDLERSTART>*/try (
@@ -1302,8 +1325,7 @@ if (DoesFileExist EGIMS_CoreConfigFile) then (
 									%
 									local SharedStartResult = (GIMS.Shared.Start GIMS.Shared)
 									if SharedStartResult == true then (
-										OpenUtility uEvoGIMS
-										%
+										AddRollout uEvoGIMS
 									)
 								)
 							/*<ERRHANDLER>*/) catch (MessageBox (Append \"Failed to start the Evo GIMS utility!\\n\\n\" (GetCurrentException())) Title:\"GIMS Evo initialization\")/*<ERRHANDLEREND>*/
@@ -1318,8 +1340,8 @@ if (DoesFileExist EGIMS_CoreConfigFile) then (
 				Height \
 				(GUIDefinition as string) \
 				(GUICallbacks as string) \
-				(GUIInits as string) \
 				(GUIPostInits as string) \
+				(GUIInits as string) \
 			To:CompileSet
 -- 			/*<ERRHANDLERSTART>*/try (
 				Execute (CompileSet as string)

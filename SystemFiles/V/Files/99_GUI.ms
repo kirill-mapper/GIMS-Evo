@@ -126,7 +126,7 @@
 				if Result then (
 					List.Rollouts[MtlID].SetSelected true
 					local 	WPos = (GetDialogPos EGIMS_V_matlist),
-							Style = #(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox)
+							Style = #(#style_titlebar, #style_border, #style_sysmenu)
 					CreateDialog EGIMS_V_mateditor Pos:[WPos.x + (GetDialogSize EGIMS_V_matlist).x + 20, WPos.y] Style:Style
 					EGIMS_V_mateditor.TheObj = TheObj
 					EGIMS_V_mateditor.TheMtl = CurrentMaterial
@@ -2535,7 +2535,9 @@
 																\"DXT5\",
 																\"DXT3\",
 																\"DXT1\",
-																\"A8R8G8B8\"
+																\"A8R8G8B8\",
+																\"ATI2\",
+																\"ATI1\"
 															)	Width:80	Offset:[-30, 0]	Align:#Center
 				DropdownList Usage	\"Usage\"	Items:#(
 													\"Unknown\",
@@ -3673,12 +3675,16 @@
 									local	TriCount = 0,
 											FGetFaceDeg = PolyOp.GetFaceDeg
 									for i = 1 to Obj.NumFaces do (
-										local fDegree = (FGetFaceDeg Obj i)
-										TriCount += (
-											if fDegree > 3 then
-												(fDegree - 2)
-											else
-												1
+										if not (PolyOp.isFaceDead Obj i) then (
+											local fDegree = (FGetFaceDeg Obj i)
+											if fDegree != undefined then (
+												TriCount += (
+													if fDegree > 3 then
+														(fDegree - 2)
+													else
+														1
+												)
+											)
 										)
 									)
 									TriCount
@@ -4024,7 +4030,7 @@
 			/*<ERRHANDLERSTART>*/try (
 				if args.Button.value__ == 1048576 then (
 					DestroyDialog EGIMS_V_matlist
-					CreateDialog EGIMS_V_matlist Style:#(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox)
+					CreateDialog EGIMS_V_matlist Style:#(#style_titlebar, #style_border, #style_sysmenu)
 				)
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
 			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/

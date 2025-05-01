@@ -41,6 +41,8 @@
 				EGIMS_V_Col_PrimSphere,
 				EGIMS_V_Col_PrimCapsule,
 				EGIMS_V_Col_PrimCylinder,
+				EGIMS_V_Col_Flags1 = for i = 1 to 32 collect false,
+				EGIMS_V_Col_Flags2 = for i = 1 to 32 collect false,
 				EGIMS_V_ModelDict,
 				EGIMS_V_Model,
 				EGIMS_V_Model_ModelMod,
@@ -543,7 +545,7 @@
 		on PostLoad do
 			GIMSObjectLink = "GIMS.Core.GUI.GUI_Layout"
 	)
-	plugin 	Helper 			EGIMS_Dummy 				Category:"Shared_Helpers" 		Name:"Dummy" 								ClassID:#(1236739888, 1959657655)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin 	Helper 			EGIMS_Dummy 				Category:"Shared_Helpers" 		Name:"EGIMS_Dummy" 								ClassID:#(1236739888, 1959657655)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		parameters params rollout:rol (
 			Tip	Type:#String	Default:""	UI:Tip
 		)
@@ -2048,7 +2050,7 @@
 	)
 	
 	/*models*/
-	plugin	Helper 			EGIMS_MP3_ModelDict			Category:"MP3_Models" 			Name:"Dictionary" 							ClassID:#(2005742990, 132796408)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin	Helper 			EGIMS_MP3_ModelDict			Category:"MP3_Models" 			Name:"EGIMS_MP3_ModelDict" 							ClassID:#(2005742990, 132796408)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		rollout rol "Max Payne 3 model dictionary" (
 			Button		SkelReset		"Revert bone transforms"
 			
@@ -2076,7 +2078,7 @@
 			)
 		)
 	)
-	plugin 	Helper 			EGIMS_MP3_Model				Category:"MP3_Models" 			Name:"Model" 								ClassID:#(1152073805, 1577419771)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin 	Helper 			EGIMS_MP3_Model				Category:"MP3_Models" 			Name:"EGIMS_MP3_Model" 								ClassID:#(1152073805, 1577419771)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		parameters params rollout:rol (
 			AuthoredOrientation	Type:#Boolean	Default:false					UI:AuthoredOrientation
 			LODGroupValues		Type:#FloatTab	Default:9999		TabSize:4	UI:(LODGroupVal1, LODGroupVal2, LODGroupVal3, LODGroupVal4)
@@ -2119,7 +2121,7 @@
 			)
 		)
 	)
-	plugin 	Helper 			EGIMS_MP3_Model_Bone 		Category:"MP3_Models" 			Name:"Bone" 								ClassID:#(71010095, 856569913)			Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin 	Helper 			EGIMS_MP3_Model_Bone 		Category:"MP3_Models" 			Name:"EGIMS_MP3_Model_Bone" 								ClassID:#(71010095, 856569913)			Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		parameters params rollout:rol (
 			IsInitialTMSet		Type:#Boolean		Default:false
 			InitialTM			Type:#Matrix3		Default:(Matrix3 1)
@@ -2207,7 +2209,7 @@
 			)
 		)
 	)
-	plugin 	SimpleMod 		EGIMS_MP3_Model_BoneMod 	Category:"MP3_Models" 			Name:"Bone" 								ClassID:#(249587354, 385267440)			Invisible:true	(
+	plugin 	SimpleMod 		EGIMS_MP3_Model_BoneMod 	Category:"MP3_Models" 			Name:"EGIMS_MP3_Model_BoneMod" 								ClassID:#(249587354, 385267440)			Invisible:true	(
 		parameters params rollout:rol (
 			Flags				Type:#BoolTab		Default:false	TabSize:20	UI:(
 																									LOCK_ROT_XYZ,
@@ -2292,7 +2294,7 @@
 			)
 		)
 	)
-	plugin 	Light 			EGIMS_MP3_Model_Light		Category:"MP3_Models" 			Name:"Light"								ClassID:#(1847700210, 135366740)		Invisible:true	Extends:OmniLight	ReplaceUI:true	(
+	plugin 	Light 			EGIMS_MP3_Model_Light		Category:"MP3_Models" 			Name:"EGIMS_MP3_Model_Light"								ClassID:#(1847700210, 135366740)		Invisible:true	Extends:OmniLight	ReplaceUI:true	(
 		parameters params rollout:rol (
 			Type						Type:#Integer		Default:1			UI:Type
 			TheColor				Type:#Color		Default:White		UI:TheColor
@@ -2470,7 +2472,7 @@
 			delegate.FarAttenStart = 0
 		)
 	)
-	plugin 	SimpleMod 		EGIMS_MP3_Model_LightMod	Category:"MP3_Models" 			Name:"Light"								ClassID:#(1636225929, 1920411455)		Invisible:true	(
+	plugin 	SimpleMod 		EGIMS_MP3_Model_LightMod	Category:"MP3_Models" 			Name:"EGIMS_MP3_Model_LightMod"								ClassID:#(1636225929, 1920411455)		Invisible:true	(
 		parameters params rollout:rol (
 			ParentObj				Type:#maxObject
 			Type						Type:#Integer		Default:1			UI:Type
@@ -2691,17 +2693,29 @@
 			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 		)
 	)
-	plugin 	SimpleMod 		EGIMS_MP3_ModelMesh			Category:"MP3_Models"			Name:"Game mesh"							ClassID:#(1101661505, 1129624471)		Invisible:true	(
+	plugin 	SimpleMod 		EGIMS_MP3_ModelMesh			Category:"MP3_Models"			Name:"EGIMS_MP3_ModelMesh"							ClassID:#(1101661505, 1129624471)		Invisible:true	(
 		parameters Params rollout:Rol (
 			Type						Type:#Integer	Default:1		UI:Type
+			FixVCs						Type:#Boolean	Default:true	UI:chkFixVCs
+			FixNRMs						Type:#Boolean	Default:true	UI:chkFixNRMs
+			SaveOp						Type:#Boolean	Default:true	UI:chkSaveOp
 		)
 		rollout Rol "Max Payne 3 model mesh" (
-			RadioButtons Type "Level of detail" Labels:#("High", "Medium", "Low", "Very low") Columns:2
+			Group "Level of detail" (
+			RadioButtons	Type						Columns:2				Labels:#("High", "Medium", "Low", "Very low")
+			)
+			Group "Optimize Vertex" (
+			checkbox		chkFixVCs					"Colors"			Across:2			
+			checkbox		chkFixNRMs					"Normals"							
+			)
+			Group "Options" (
+			checkbox		chkSaveOp					"Export Copy"		Align:#Center						
+			)
 		)
 	)
 	
 	/*textures*/
-	plugin	Helper 			EGIMS_MP3_TexDict			Category:"MP3_Graphics" 		Name:"Texture Dictionary" 					ClassID:#(1605294882, 1040646913)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin	Helper 			EGIMS_MP3_TexDict			Category:"MP3_Graphics" 		Name:"EGIMS_MP3_TexDict" 					ClassID:#(1605294882, 1040646913)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		parameters params rollout:rol (
 			ObjList	Type:#NodeTab	TabSizeVariable:true
 		)
@@ -3690,12 +3704,12 @@
 	)
 
 	/*collisions*/
-	plugin 	Helper 			EGIMS_V_CollisionDict	 	Category:"V_Collisions" 		Name:"Dictionary" 		ClassID:#(1951679095, -1450803854)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin 	Helper 			EGIMS_V_CollisionDict	 	Category:"V_Collisions" 		Name:"EGIMS_V_CollisionDict" 		ClassID:#(1951679095, -1450803854)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		rollout rol "GTA V collision dictionary" (
 			Label	Tip	"No properties to assign"
 		)
 	)
-	plugin 	Helper 			EGIMS_V_Col_Composite 		Category:"V_Collisions" 		Name:"Composite" 		ClassID:#(1574213680, 1997960851)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin 	Helper 			EGIMS_V_Col_Composite 		Category:"V_Collisions" 		Name:"EGIMS_V_Col_Composite" 		ClassID:#(1574213680, 1997960851)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		parameters chFlags rollout:params (
 			UseChildFlags	Type:#Boolean	Default:true		UI:cUseChildFlags
 		)
@@ -3708,16 +3722,18 @@
 				AdditionalCreateHandler()
 		)
 	)
-	plugin 	SimpleMod 		EGIMS_V_CollisionMesh		Category:"V_Collisions" 		Name:"Mesh"				ClassID:#(921371151, 1871725530)		Invisible:true	(
+	plugin 	SimpleMod 		EGIMS_V_CollisionMesh		Category:"V_Collisions" 		Name:"EGIMS_V_CollisionMesh"				ClassID:#(921371151, 1871725530)		Invisible:true	(
 		parameters Params rollout:Rol (
 			Type					Type:#Integer		Default:1		UI:Type
-			VertexOffset_UnkPart	Type:#WorldUnits	Default:0		UI:VertexOffset_UnkPart
+			VertexOffset_UnkPart	Type:#WorldUnits	Default:0.0025	UI:VertexOffset_UnkPart
 			CollectMAXSiblings		Type:#Boolean		Default:false	UI:CollectMAXSiblings					
+			SaveOp					Type:#Boolean		Default:true	UI:chkSaveOp
 		)
 		rollout Rol "GTA V collision mesh" (
 			RadioButtons	Type "Type" Labels:#("BVH", "Geometry") Columns:2
 			Spinner 		VertexOffset_UnkPart "Unk VertOffset part" Type:#WorldUnits Range:[-9999, 9999, 0]	Align:#Left FieldWidth:40
 			CheckBox		CollectMAXSiblings	"Collect MAX siblings"	Align:#Left
+			Checkbox		chkSaveOp			"Export Copy"			Align:#Left
 		)
 		include "I_V_ChildFlagsUI.ms"
 		on Create do (
@@ -3725,7 +3741,7 @@
 				AdditionalCreateHandler()
 		)
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_Plane 			Category:"V_Collisions" 		Name:"Plane" 			ClassID:#(2008192725, 1441569628)		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_Plane 			Category:"V_Collisions" 		Name:"EGIMS_V_Col_Plane" 			ClassID:#(2008192725, 1441569628)		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -3761,7 +3777,7 @@
 		)
 		include "I_V_ChildFlagsUI.ms"
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_Disc			Category:"V_Collisions"			Name:"Disc" 			ClassID:#(1652583542, 406348285)		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_Disc			Category:"V_Collisions"			Name:"EGIMS_V_Col_Disc" 			ClassID:#(1652583542, 406348285)		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -3797,7 +3813,7 @@
 		)
 		include "I_V_ChildFlagsUI.ms"
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_Box 			Category:"V_Collisions" 		Name:"Box" 				ClassID:#(200596908, -1429683129)		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_Box 			Category:"V_Collisions" 		Name:"EGIMS_V_Col_Box" 				ClassID:#(200596908, -1429683129)		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -3836,7 +3852,7 @@
 		)
 		include "I_V_ChildFlagsUI.ms"
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_Sphere 			Category:"V_Collisions" 		Name:"Sphere" 			ClassID:#(1221911841, 96644880) 		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_Sphere 			Category:"V_Collisions" 		Name:"EGIMS_V_Col_Sphere" 			ClassID:#(1221911841, 96644880) 		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -3867,7 +3883,7 @@
 		)
 		include "I_V_ChildFlagsUI.ms"
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_Capsule 		Category:"V_Collisions" 		Name:"Capsule" 			ClassID:#(858407250, 148563441) 		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_Capsule 		Category:"V_Collisions" 		Name:"EGIMS_V_Col_Capsule" 			ClassID:#(858407250, 148563441) 		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -3927,7 +3943,7 @@
 		)
 		include "I_V_ChildFlagsUI.ms"
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_Cylinder		Category:"V_Collisions"			Name:"Cylinder" 		ClassID:#(1939362787, 1521396838)		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_Cylinder		Category:"V_Collisions"			Name:"EGIMS_V_Col_Cylinder" 		ClassID:#(1939362787, 1521396838)		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -3963,7 +3979,7 @@
 		)
 		include "I_V_ChildFlagsUI.ms"
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_PrimBox 		Category:"V_PrimCollisions"		Name:"Box" 				ClassID:#(52281751, 642373764)			Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_PrimBox 		Category:"V_PrimCollisions"		Name:"EGIMS_V_Col_PrimBox" 				ClassID:#(52281751, 642373764)			Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -4001,7 +4017,7 @@
 			spinner Height "Height" Type:#worldunits range:[0,10000,1] FieldWidth:50
 		)
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_PrimSphere 		Category:"V_PrimCollisions" 	Name:"Sphere" 			ClassID:#(1610404602, 769120363) 		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_PrimSphere 		Category:"V_PrimCollisions" 	Name:"EGIMS_V_Col_PrimSphere" 			ClassID:#(1610404602, 769120363) 		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -4031,7 +4047,7 @@
 			spinner Radius "Radius" Type:#worldunits range:[0, 10000, 1] FieldWidth:50
 		)
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_PrimCapsule 	Category:"V_PrimCollisions" 	Name:"Capsule" 			ClassID:#(321642857, 773461178) 		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_PrimCapsule 	Category:"V_PrimCollisions" 	Name:"EGIMS_V_Col_PrimCapsule" 			ClassID:#(321642857, 773461178) 		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -4088,7 +4104,7 @@
 			spinner Height "Height" Type:#worldunits range:[0, 10000, 2] FieldWidth:50
 		)
 	)
-	plugin 	SimpleObject 	EGIMS_V_Col_PrimCylinder	Category:"V_PrimCollisions"		Name:"Cylinder" 		ClassID:#(656703252, 2054693377)		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_Col_PrimCylinder	Category:"V_PrimCollisions"		Name:"EGIMS_V_Col_PrimCylinder" 		ClassID:#(656703252, 2054693377)		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -4124,7 +4140,7 @@
 		)
 	)
 
-	plugin 	SimpleObject 	EGIMS_V_VehicleRecording 	Category:"V_Paths" 		Name:"Vehicle recording" 	ClassID:#(1507408395, 1738459703) 		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_VehicleRecording 	Category:"V_Paths" 		Name:"EGIMS_V_VehicleRecording" 	ClassID:#(1507408395, 1738459703) 		Invisible:true	(
 		include "I_PluginMesh.ms"
 		fn RebuildMesh &_Verts &_Faces &_MtlIDs = (
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
@@ -4197,7 +4213,7 @@
 	)
 
 	/*
-	plugin 	SimpleObject 	EGIMS_V_MapHelper			Category:"V_Helpers"			Name:"Map" 				ClassID:#(857604459, 1491837148)		Invisible:true	(
+	plugin 	SimpleObject 	EGIMS_V_MapHelper			Category:"V_Helpers"			Name:"EGIMS_V_MapHelper" 				ClassID:#(857604459, 1491837148)		Invisible:true	(
 		rollout params "GTA V map helper" (
 			Label	Tip	"No properties to assign"
 		)
@@ -4216,7 +4232,7 @@
 	*/
 	
 	/*models*/
-	plugin	Helper 			EGIMS_V_ModelDict			Category:"V_Models" 			Name:"Dictionary"			ClassID:#(753633694, -1039092802)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin	Helper 			EGIMS_V_ModelDict			Category:"V_Models" 			Name:"EGIMS_V_ModelDict"			ClassID:#(753633694, -1039092802)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		rollout rol "GTA V model dictionary" (
 			Button		SkelReset		"Revert bone transforms"
 			
@@ -4244,41 +4260,94 @@
 			)
 		)
 	)
-	plugin 	Helper 			EGIMS_V_Model				Category:"V_Models" 			Name:"Model" 				ClassID:#(335677675, 326373399)			Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin 	Helper 			EGIMS_V_Model				Category:"V_Models" 			Name:"EGIMS_V_Model" 				ClassID:#(335677675, 326373399)			Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		include "I_V_oFModel.ms"
 	)
-	plugin 	SimpleMod 		EGIMS_V_Model_ModelMod 		Category:"V_Imposters" 			Name:"Model" 				ClassID:#(1007338255, 2091317628)		Invisible:true	(
+	plugin 	SimpleMod 		EGIMS_V_Model_ModelMod 		Category:"V_Imposters" 			Name:"EGIMS_V_Model_ModelMod" 				ClassID:#(1007338255, 2091317628)		Invisible:true	(
 		include "I_V_oFModel.ms"
 	)
-	plugin 	Helper 			EGIMS_V_Model_Bone 			Category:"V_Models" 			Name:"Bone" 				ClassID:#(1583710484, -1251435080)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin 	Helper 			EGIMS_V_Model_Bone 			Category:"V_Models" 			Name:"EGIMS_V_Model_Bone" 				ClassID:#(1583710484, -1251435080)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		include "I_V_oFBone.ms"
 	)
-	plugin 	SimpleMod 		EGIMS_V_Model_BoneMod 		Category:"V_Imposters" 			Name:"Bone" 				ClassID:#(428178281, -2095695919)		Invisible:true	(
+	plugin 	SimpleMod 		EGIMS_V_Model_BoneMod 		Category:"V_Imposters" 			Name:"EGIMS_V_Model_BoneMod" 				ClassID:#(428178281, -2095695919)		Invisible:true	(
 		include "I_V_oFBone.ms"
 	)
-	plugin 	Light 			EGIMS_V_Model_Light			Category:"V_Models" 			Name:"Light"				ClassID:#(1229726970, -2017340078)		Invisible:true	Extends:OmniLight	ReplaceUI:true	(
+	plugin 	Light 			EGIMS_V_Model_Light			Category:"V_Models" 			Name:"EGIMS_V_Model_Light"				ClassID:#(1229726970, -2017340078)		Invisible:true	Extends:OmniLight	ReplaceUI:true	(
 		include "I_V_oFLight.ms"
 		on Create do
 			Init delegate
 	)
-	plugin 	SimpleMod 		EGIMS_V_Model_LightMod		Category:"V_Imposters" 			Name:"Light"				ClassID:#(1940220823, 1425288171)		Invisible:true	(
+	plugin 	SimpleMod 		EGIMS_V_Model_LightMod		Category:"V_Imposters" 			Name:"EGIMS_V_Model_LightMod"				ClassID:#(1940220823, 1425288171)		Invisible:true	(
 		include "I_V_oFLight.ms"
 		on Create do
 			IsCreating = true
 	)
-	plugin 	SimpleMod 		EGIMS_V_ModelMesh			Category:"V_Models"				Name:"Game mesh"			ClassID:#(1009825488, 387669260)		Invisible:true	(
+	plugin 	SimpleMod 		EGIMS_V_ModelMesh			Category:"V_Models"				Name:"EGIMS_V_ModelMesh"			ClassID:#(1009825488, 387669260)		Invisible:true	(
 		parameters Params rollout:Rol (
 			Type	Type:#Integer	Default:1		UI:Type
 			Mask	Type:#Integer	Default:255		UI:Mask
+			FixVCs	Type:#Boolean	Default:true	UI:chkFixVCs
+			FixNRMs	Type:#Boolean	Default:true	UI:chkFixNRMs
+			SaveOp	Type:#Boolean	Default:true	UI:chkSaveOp
 		)
 		rollout Rol "GTA V model mesh" (
-			RadioButtons	Type						"Level of detail"		Columns:2		Labels:#("High", "Medium", "Low", "Very low")
-			Spinner			Mask						"Mask"					Type:#Integer	Range:[0, 255, 255]
+			Group "Level of detail" (
+			RadioButtons	Type						Columns:2				Labels:#("High", "Medium", "Low", "Very low")
+			)
+			Group "Render Mask" (
+			Spinner			Mask						Type:#Integer	Range:[224, 255, 255]	Across:2	Align:#Left	Offset:[-2, 0]	Width:55
+			Label			Rlabel						"Reflectivity"	Enabled:false						Align:#Left	Offset:[2, 0]
+			Label			Vlabel						"Visibility"	Enabled:false			Across:2	Align:#Left	Offset:[2, 0]
+			checkbox		chkSpecular					"Specular"														
+			checkbox		chkDrawable					"Drawable"								Across:2				
+			checkbox		chkMirror					"Mirror"									
+			checkbox		chkShadow					"Shadow"								Across:2	
+			checkbox		chkWater					"Water"												
+			)
+			Group "Optimize Vertex" (
+			checkbox		chkFixVCs					"Colors"								Across:2
+			checkbox		chkFixNRMs					"Normals"										
+			)
+			Group "Options" (
+			checkbox		chkSaveOp					"Export Copy"										Align:#Center						
+			)
+			
+			fn updateCheckboxes maskValue = (
+				chkDrawable.checked = (bit.and maskValue 1 != 0)
+				chkShadow.checked = (bit.and maskValue 2 != 0)
+				chkSpecular.checked = (bit.and maskValue 4 != 0)
+				chkMirror.checked = (bit.and maskValue 8 != 0)
+				chkWater.checked = (bit.and maskValue 16 != 0)
+			)
+
+			on Mask changed newValue do (
+				updateCheckboxes newValue
+			)
+
+			fn updateMask = (
+				local newMask = 224
+				if chkDrawable.checked do newMask = bit.or newMask 1
+				if chkShadow.checked do newMask = bit.or newMask 2
+				if chkSpecular.checked do newMask = bit.or newMask 4
+				if chkMirror.checked do newMask = bit.or newMask 8
+				if chkWater.checked do newMask = bit.or newMask 16
+				Mask.value = newMask
+			)
+
+			on chkDrawable changed state do updateMask()
+			on chkShadow changed state do updateMask()
+			on chkSpecular changed state do updateMask()
+			on chkMirror changed state do updateMask()
+			on chkWater changed state do updateMask()
+
+			on Rol open do (
+				updateCheckboxes Mask.value
+			)
 		)
 	)
 	
 	/*textures*/
-	plugin	Helper 			EGIMS_V_TexDict				Category:"V_Graphics" 			Name:"Texture Dictionary"	ClassID:#(619416821, -1098014747)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
+	plugin	Helper 			EGIMS_V_TexDict				Category:"V_Graphics" 			Name:"EGIMS_V_TexDict"	ClassID:#(619416821, -1098014747)		Invisible:true	Extends:Dummy		ReplaceUI:true	(
 		parameters params rollout:rol (
 			ObjList	Type:#NodeTab	TabSizeVariable:true
 		)
@@ -4585,7 +4654,7 @@
 				2:
 					Obj.Pos = WorldPoint
 				3:
-					Obj.TheDistance = ((Length worldDist) * 2)
+					Obj.falloff = (Length worldDist)
 				4:
 					#stop
 			)
@@ -4793,6 +4862,43 @@
 						CoreCats[CatID] = CatNameStrings[CatNameID]
 					)
 				)
+				local	stringsToRemove = #(
+							"EGIMS_V_Col_Prim",
+							"EGIMS_V_Col_",
+							"EGIMS_V_Model_",
+							"EGIMS_MP3_Model_",
+							"EGIMS_AE_Col_",
+							"EGIMS_V_",
+							"EGIMS_MP3_",
+							"EGIMS_AE_",
+							"EGIMS_"
+						),
+						specialSubstitutions = #(
+							#("CollisionDict", "Dictionary"),
+							#("ModelDict", "Dictionary"),
+							#("TexDict", "Texture Dictionary"),
+							#("CollisionMesh", "Mesh"),
+							#("ModelMesh", "Mesh"),
+							#("ModelMod", "Model"),
+							#("BoneMod", "Bone"),
+							#("LightMod", "Light")
+						)
+				for coreID = 1 to CreatableObjects_Data[3].count do (
+					local	categoryObjects = CreatableObjects_Data[3][coreID] 
+					for catID = 1 to categoryObjects.count do (
+						local	objectNames = categoryObjects[catID] 
+						for objID = 1 to objectNames.count do (
+							local	modifiedName = objectNames[objID] 
+							for s in stringsToRemove do (
+								modifiedName = substituteString modifiedName s ""
+							)
+							for sub in specialSubstitutions do (
+								modifiedName = substituteString modifiedName sub[1] sub[2]
+							)              
+							objectNames[objID] = modifiedName
+						)
+					)
+				)				
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS)/*<ERRHANDLEREND>*/
 			/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 		)

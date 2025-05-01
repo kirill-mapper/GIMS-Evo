@@ -585,6 +585,66 @@ SubItems:#(undefined,undefined,undefined,undefined,undefined,undefined,undefined
 ),
 (
 GIMS.Core.GUI.GUI_Item \
+Name:"ArrangeBtn004" \
+Pos:[19100,-1030,0] \
+ItemSize:#(99,9) \
+ItemType:2 \
+DefaultState:true \
+checkstate:true \
+SelectionMode:2 \
+groupID:1 \
+backColor:3 \
+Clickable:true \
+ItemText:"UnEmbed game material textures" \
+ItemContent:"" \
+font:4 \
+forecolor:2 \
+TextAlign:4 \
+ChangeIcon:false \
+icon:"Null" \
+animated:false \
+iconSize:#(7,7) \
+ImageAlign:4 \
+TextImageRelation:1 \
+EventTypes:#(1,1,1,1,1,2,1,1,1) \
+EventCores:#(2,2,2,2,2,1,2,2,2) \
+EventNames:#("Null","Null","Null","Null","Null","UnEmbedTexturesInSelection","Null","Null","Null") \
+scrollable:false \
+ScrollOrient:1 \
+SubItems:#(undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined) \
+),
+(
+GIMS.Core.GUI.GUI_Item \
+Name:"ArrangeBtn005" \
+Pos:[19100,-1140,0] \
+ItemSize:#(99,9) \
+ItemType:2 \
+DefaultState:true \
+checkstate:true \
+SelectionMode:2 \
+groupID:1 \
+backColor:4 \
+Clickable:true \
+ItemText:"Fix Vertex Colors (Optimize)" \
+ItemContent:"" \
+font:4 \
+forecolor:2 \
+TextAlign:4 \
+ChangeIcon:false \
+icon:"Null" \
+animated:false \
+iconSize:#(7,7) \
+ImageAlign:4 \
+TextImageRelation:1 \
+EventTypes:#(1,1,1,1,1,2,1,1,1) \
+EventCores:#(2,2,2,2,2,1,2,2,2) \
+EventNames:#("Null","Null","Null","Null","Null","FixVertexColors","Null","Null","Null") \
+scrollable:false \
+ScrollOrient:1 \
+SubItems:#(undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined) \
+),
+(
+GIMS.Core.GUI.GUI_Item \					  
 Name:"ArrangeBtn003" \
 Pos:[19100,-810,0] \
 ItemSize:#(99,9) \

@@ -725,6 +725,9 @@
 								if HaveChildFlags then (
 									ChildFlags = #()
 									ChildFlags.Count = ChildCount
+								) else if (findItem ParamSource.Flags1 true) != 0 or (findItem ParamSource.Flags2 true) != 0 then (
+									ChildFlags = #()
+									ChildFlags.Count = ChildCount
 								)
 								if AllowProgress then (
 									ProgressData.x += 1
@@ -764,13 +767,18 @@
 												ItemParamSource.Flags1,
 												ItemParamSource.Flags2
 											)
+										) else if ChildFlags != unsupplied then (
+											ChildFlags[ItemCount] = #(
+												ParamSource.Flags1,
+												ParamSource.Flags2
+											)
 										)
 										Items[ItemCount] = Item
 									)
 								)
 								Items.Count = ItemCount
 								ChildTransforms.Count = ItemCount
-								if HaveChildFlags then
+								if ChildFlags != unsupplied then
 									ChildFlags.Count = ItemCount
 							)
 							if AllowProgress then (
@@ -858,8 +866,8 @@
 									HalfHeight = (ParamSource.Height / 2),
 									Bounds = Result.Bounds,
 									AABB = Bounds.AABB
-							AABB.bMin = [HalfHeight, Radius, Radius]
-							AABB.bMax = [-HalfHeight, -Radius, -Radius]
+							AABB.bMin = [-HalfHeight, -Radius, -Radius]
+							AABB.bMax = [HalfHeight, Radius, Radius]
 							Bounds.Radius = Radius
 							Bounds.Centroid = [0, 0, 0]
 							Bounds.CenterOfMass = [0, 0, 0]
@@ -895,8 +903,8 @@
 									HalfHeight = (ParamSource.Height / 2),
 									Bounds = Result.Bounds,
 									AABB = Bounds.AABB
-							AABB.bMin = [Radius, HalfHeight, Radius]
-							AABB.bMax = [-Radius, -HalfHeight, -Radius]
+							AABB.bMin = [-Radius, -HalfHeight, -Radius]
+							AABB.bMax = [Radius, HalfHeight, Radius]
 							Bounds.CalculateWorldRadius()
 							Bounds.Centroid = [0, 0, 0]
 							Bounds.CenterOfMass = [0, 0, 0]
@@ -934,8 +942,8 @@
 									Bounds = Result.Bounds
 							if (IsKindOf ParentParamSource EGIMS_V_Col_Composite) then (
 								local	AABB = Bounds.AABB
-								AABB.bMin = [HalfWidth, HalfDepth, HalfHeight]
-								AABB.bMax = [-HalfWidth, -HalfDepth, -HalfHeight]
+								AABB.bMin = [-HalfWidth, -HalfDepth, -HalfHeight]
+								AABB.bMax = [HalfWidth, HalfDepth, HalfHeight]
 								Bounds.CalculateRadius()
 								Bounds.Centroid = [0, 0, 0]
 								Bounds.CenterOfMass = [0, 0, 0]
@@ -1037,8 +1045,8 @@
 									HalfHeight = (ParamSource.Height / 2),
 									Bounds = Result.Bounds,
 									AABB = Bounds.AABB
-							AABB.bMin = [Radius, HalfHeight, Radius]
-							AABB.bMax = [-Radius, -HalfHeight, -Radius]
+							AABB.bMin = [-Radius, -HalfHeight, -Radius]
+							AABB.bMax = [Radius, HalfHeight, Radius]
 							Bounds.Radius = (HalfHeight + Radius)
 							Bounds.Centroid = [0, 0, 0]
 							Bounds.CenterOfMass = [0, 0, 0]
@@ -1147,6 +1155,7 @@
 							AppendMHL ObjectNames ObjName Comparator:OrderComparator
 							ObjMtl = (GetStandartized Obj.Material)
 							Obj.Material = ObjMtl
+							if ParamSource.SaveOp then Obj = (Copy Obj)
 							if (PrepareMeshForExport #Col Obj ObjMtl unsupplied) then (
 								if AllowProgress then (
 									ProgressData.x += 1
@@ -1424,7 +1433,8 @@
 									UpdateProgress #Progress ProgressData
 								)
 							)
-							/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS AddInfo:#(#(#Obj, #ParamSource, #SetOwnProgress, #ObjClass, #ObjMtl), #(Obj, ParamSource, SetOwnProgress, ObjClass, (if Have ObjMtl then (try ObjMtl.MaterialList catch (ClassOf ObjMtl)) else undefined))))/*<ERRHANDLEREND>*/
+							if ParamSource.SaveOp then Delete Obj
+							/*<ERRHANDLER>*/) catch (try (if ParamSource.SaveOp then Delete Obj) catch ();	local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS AddInfo:#(#(#Obj, #ParamSource, #SetOwnProgress, #ObjClass, #ObjMtl), #(Obj, ParamSource, SetOwnProgress, ObjClass, (if Have ObjMtl then (try ObjMtl.MaterialList catch (ClassOf ObjMtl)) else undefined))))/*<ERRHANDLEREND>*/
 							/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 						)
 					
@@ -1896,15 +1906,28 @@
 										LightAttr = (ConvertStruct undefined GIMS.CurrentGame.Core.TypeLibrary.grcLight ParamSource:ParamSource),
 										Dir = ((-Obj.Dir) * InvParentTM.Rotation),
 										CP
+								if ParamSource.LocalAxisCP then (
+										CPAxis = (-Dir)
+										) else (
+										CPAxis = ([0,0,1])
+										)
 								if ParamSource.CustomCullingPlane then (
 									local	Angles = ParamSource.CPAngles,
-											CPVec = ((-Dir) * ((EulerAngles Angles[1] Angles[2] Angles[3]) as Quat))
+											--CPVec = ((-Dir) * ((EulerAngles Angles[1] Angles[2] Angles[3]) as Quat))
+											CPVec = ((CPAxis) * ((EulerAngles Angles[1] Angles[2] Angles[3]) as Quat))
 									CP = (TypeCast CPVec #Array)
 									CP[4] = ParamSource.CPDistance
 								) else (
-									CP = (TypeCast (-Dir) #Array)
+									CP = (TypeCast (CPAxis) #Array)
 									CP[4] = ParamSource.Falloff
 								)
+								if ParamSource.CustomTng then (
+									local	TAngles = ParamSource.TngAngles,	
+											TngVec = (([0,0,1]) * ((EulerAngles TAngles[1] TAngles[2] TAngles[3]) as Quat))
+									Tng = (TypeCast TngVec #Array)
+								) else (
+									Tng = (-Obj.transform.row1)
+								)				
 								LightAttr.LightType = (
 									case ParamSource.Type of (
 										1:
@@ -1918,7 +1941,7 @@
 									)
 								)
 								LightAttr.CullingPlane = CP
-								LightAttr.Tangent = (Dir * ((EulerAngles 90 0 0) as Quat))	--TODO get from ParamSource
+								LightAttr.Tangent = Tng --(-Obj.transform.row1)	--TODO get from ParamSource
 								local	TheExtents = ParamSource.TheExtents
 								LightAttr.Extents = [TheExtents, TheExtents, TheExtents]
 								LightAttr.LightFadeDistance = ParamSource.TheDistance
@@ -1933,9 +1956,14 @@
 								)
 								LightAttr.Position = (Obj.Pos * InvParentTM)
 								LightAttr.Direction = Dir
+								if ParamSource.GenerateName then (
 								local	ProjectedTextureName = (ReplaceChars ParamSource.ProjectedTextureName Comparator:OrderComparator)
-								AppendMHL GIMS.CurrentGame.Core.DB.TextureNames ProjectedTextureName Comparator:OrderComparator
-								LightAttr.ProjectedTextureHash = (GetJenkinsHash ProjectedTextureName)
+										AppendMHL GIMS.CurrentGame.Core.DB.TextureNames ProjectedTextureName Comparator:OrderComparator
+									PTHN = (FormattedPrint(GetJenkinsHash ProjectedTextureName)format:"u")
+								) else (
+									PTHN = (ParamSource.ProjTexHash)
+								)
+								LightAttr.ProjectedTextureHash = PTHN  
 								Append LightAttributes.Items LightAttr
 							/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS AddInfo:#(#(#Obj, #ParamSource, #SetOwnProgress, #ObjClass), #(Obj, ParamSource, SetOwnProgress, ObjClass)))/*<ERRHANDLEREND>*/
 							/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
@@ -1974,8 +2002,8 @@
 									ParentResult = Ancestor
 									Materials = #()
 								)
-									
 								--collect data
+								if ParamSource.SaveOp then Obj = (Copy Obj)								
 								if (PrepareMeshForExport #Model Obj Mtl MatLevelsAndSPSList) then (
 									if AllowProgress then (
 										ProgressData.x += 1
@@ -2253,9 +2281,7 @@
 																	NeedTotalAABB = (GroupCount > 1),
 																	TotalAABB = (if NeedTotalAABB then (GIMS.Core.TypeLibrary.AABB())),
 																	MatBounds = #(),
-																	HashFmtStr = "%,",
-																	HashValueSS = (StringStream ""),
-																	VertHashPropName = #HashValue,
+																	VertHashToIndexMap = dotNetObject "System.Collections.Hashtable"(),
 																	OldProgressData
 															Geometries.Count = GroupCount
 															MatBounds.Count = GroupCount
@@ -2277,7 +2303,7 @@
 																		Idx = #(),
 																		Verts = #(),
 																		GroupFaceCount = Faces.Count,
-																		GroupVertBufferSize = (GroupFaceCount * 2),
+																		GroupVertBufferSize = GroupFaceCount,
 																		IdxCount = 0,
 																		VertCount = 0
 																Idx.Count = GroupFaceCount
@@ -2295,42 +2321,63 @@
 																		--calculate vertex hash
 																		local	PhysVertID = Face[SubVertID],
 																				MapVertIDs = #NoMapVertIDs,
-																				ColorVertID, Color2VertID, NormalsVertID, TangentVertID
-																		Format HashFmtStr PhysVertID To:HashValueSS
+																				ColorVertID, Color2VertID, NormalsVertID, TangentVertID,
+																				HashValue = PhysVertID as integer,
+																				prime1 = 31,
+																				prime2 = 37
 																		if NeedColors then (
 																			ColorVertID = ColorFace[SubVertID]
-																			Format HashFmtStr ColorVertID To:HashValueSS
+																			local colorRGBA = ColorVerts[ColorVertID]
+																			if ParamSource.FixVCs then (
+																				HashValue = (HashValue * prime1) + (floor(colorRGBA[1] * 1000 + 0.5)) as integer
+																				HashValue = (HashValue * prime2) + (floor(colorRGBA[2] * 1000 + 0.5)) as integer
+																				HashValue = (HashValue * prime1) + (floor(colorRGBA[3] * 1000 + 0.5)) as integer
+																				HashValue = (HashValue * prime2) + (floor(colorRGBA[4] * 1000 + 0.5)) as integer
+																			) else (
+																				HashValue = (HashValue * prime1) + (ColorVertID as integer)
+																			)
 																		)
 																		if NeedColors2 then (
 																			Color2VertID = ColorFace2[SubVertID]
-																			Format HashFmtStr Color2VertID To:HashValueSS
+																			local color2RGBA = ColorVerts2[Color2VertID]
+																			if ParamSource.FixVCs then (
+																				HashValue = (HashValue * prime1) + (floor(color2RGBA[1] * 1000 + 0.5)) as integer
+																				HashValue = (HashValue * prime2) + (floor(color2RGBA[2] * 1000 + 0.5)) as integer
+																				HashValue = (HashValue * prime1) + (floor(color2RGBA[3] * 1000 + 0.5)) as integer
+																				HashValue = (HashValue * prime2) + (floor(color2RGBA[4] * 1000 + 0.5)) as integer
+																			) else (
+																				HashValue = (HashValue * prime1) + (Color2VertID as integer)
+																			)
 																		)
 																		if NeedUVs then (
 																			MapVertIDs = #()
 																			for ChID = RAWUVCount to 1 by -1 do (
 																				local	MapVertID = RAWMapFaceGroups[ChID][FaceID][SubVertID]
 																				MapVertIDs[ChID] = MapVertID
-																				Format HashFmtStr MapVertID To:HashValueSS
+																				HashValue = (HashValue * prime1) + (MapVertID as integer)
 																			)
 																		)
 																		if NeedNormals then (
 																			NormalsVertID = NormalsFace[SubVertID]
-																			Format HashFmtStr NormalsVertID To:HashValueSS
+																			local normalXYZ = NormalsVectors[NormalsVertID]
+																			if ParamSource.FixNRMs then (
+																				HashValue = (HashValue * prime1) + (floor(normalXYZ.x * 1000 + 0.5)) as integer
+																				HashValue = (HashValue * prime2) + (floor(normalXYZ.y * 1000 + 0.5)) as integer
+																				HashValue = (HashValue * prime1) + (floor(normalXYZ.z * 1000 + 0.5)) as integer
+																			) else (
+																				HashValue = (HashValue * prime1) + (NormalsVertID as integer)
+																			)
 																		)
 																		if NeedTangents then (
 																			TangentVertID = TangentFace[SubVertID]
-																			Format HashFmtStr TangentVertID To:HashValueSS
+																			HashValue = (HashValue * prime1) + (TangentVertID as integer)
 																		)
-																		local	HashValue = (HashValueSS as String)
-																		Free HashValueSS
 																	
 																		--find place for the vertex
-																		local	VertID = (QuickSearch Verts HashValue EndID:VertCount PropertyName:VertHashPropName GetInsertionPoint:true Comparator:OrderComparator)
-																		if VertID < 0 then (	--already present
-																			VertID = -VertID	--fix place index
-																			if VertID > VertCount then
-																				VertCount = VertID
-																			FaceIndices[SubVertID] = Verts[VertID]
+																		local   VertID
+																		if VertHashToIndexMap.ContainsKey(HashValue) then (	--already present
+																				VertID = VertHashToIndexMap.Item[HashValue]
+																				FaceIndices[SubVertID] = VertID															
 																		) else (	--add new vertex
 																				
 																			--collect vertex data
@@ -2369,7 +2416,6 @@
 																								SkinBones:RAWSkinBones[PhysVertID] \
 																								SkinWeights:RAWSkinWeights[PhysVertID] \
 																								UVCoords:UVCoords \
-																								HashValue:HashValue \
 																						) else (
 																							grcMeshVertex \
 																								Position:RAWVerts[PhysVertID] \
@@ -2378,11 +2424,11 @@
 																								TheColor2:VertColor2 \
 																								Tangent:Tangent \
 																								UVCoords:UVCoords \
-																								HashValue:HashValue \
 																						)
 																					)
-																			FaceIndices[SubVertID] = TempVertex
-																			PreallocatedInsertItem TempVertex Verts VertID VertCount
+																		Verts[VertCount] = TempVertex
+																		FaceIndices[SubVertID] = VertCount
+																		VertHashToIndexMap.Add HashValue VertCount
 																		)
 																	)
 																	IdxCount += 1
@@ -2397,13 +2443,13 @@
 																Free HaveVertFlags
 																/**/
 																
-																--restore vert indices
+																/*--restore vert indices
 																for i = 1 to VertCount do
 																	Verts[i].CollectionIndex = i
 																for FaceIdx in Idx do (
 																	for i = 1 to 3 do
 																		FaceIdx[i] = FaceIdx[i].CollectionIndex
-																)
+																)*/
 																
 																--create geometry
 																local	Positions = #(),
@@ -2560,6 +2606,7 @@
 																for i = 1 to VertCount do
 																	Verts[i].Dispose()
 																Free Verts
+																VertHashToIndexMap.Clear()
 															)
 															if AllowProgress then
 																ProgressData = OldProgressData
@@ -2706,7 +2753,8 @@
 									)
 									/**/
 								)
-							/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS AddInfo:#(#(#Obj, #ParamSource, #SetOwnProgress, #ObjClass), #(Obj, ParamSource, SetOwnProgress, ObjClass)))/*<ERRHANDLEREND>*/
+								if ParamSource.SaveOp then Delete Obj
+							/*<ERRHANDLER>*/) catch (try (if ParamSource.SaveOp then Delete Obj) catch ();	local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS AddInfo:#(#(#Obj, #ParamSource, #SetOwnProgress, #ObjClass), #(Obj, ParamSource, SetOwnProgress, ObjClass)))/*<ERRHANDLEREND>*/
 							/*<PROFILEREND>*//*); LogProfiler #End 0; PWS*//*<PROFILERENDED>*/
 						)
 						EGIMS_V_TexDict: (
