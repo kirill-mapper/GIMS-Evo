@@ -2924,10 +2924,19 @@
 										TrgMaterialIDList = TargetMtl.MaterialIDList,
 										TrgNames = TargetMtl.Names
 								for MtlID = MatCount to 1 by -1 do (
-									local	TargetIndex = (BaseIndex + MtlID)
-									TrgMaterialList[TargetIndex] = (GetStandartized MaterialList[MtlID] NeedMultiMtl:false TargetMtl:TargetMtl BaseIndex:(TrgMaterialList.Count + BaseIndex))
-									TrgMaterialIDList[TargetIndex] = MaterialIDList[MtlID]
-									TrgNames[TargetIndex] = Names[MtlID]
+									local	TargetIndex = (BaseIndex + MtlID),
+											CurrentMtl = MaterialList[MtlID]
+									if (ClassOf CurrentMtl) == MultiMaterial then (
+										if CurrentMtl.MaterialList.Count > 0 then (
+											TrgMaterialList[TargetIndex] = (GetStandartized CurrentMtl.MaterialList[1] NeedMultiMtl:false TargetMtl:TargetMtl BaseIndex:(TrgMaterialList.Count + BaseIndex))
+											TrgMaterialIDList[TargetIndex] = MaterialIDList[MtlID]
+											TrgNames[TargetIndex] = CurrentMtl.Names[1]
+										)
+									) else (
+										TrgMaterialList[TargetIndex] = (GetStandartized CurrentMtl NeedMultiMtl:false TargetMtl:TargetMtl BaseIndex:(TrgMaterialList.Count + BaseIndex))
+										TrgMaterialIDList[TargetIndex] = MaterialIDList[MtlID]
+										TrgNames[TargetIndex] = Names[MtlID]
+									)
 								)
 								TargetMtl
 							) else
@@ -2942,12 +2951,25 @@
 									UpdateProgress #Progress [MtlID, 0, MatCount]
 								else
 									UpdateProgress #None 0
-								local	NewSubMtl = (GetStandartized MaterialList[MtlID] NeedMultiMtl:false TargetMtl:NewMtl BaseIndex:MaterialList.Count)
-								MaterialList[MtlID] = (
-									if NewSubMtl == OK then
-										(EGIMS_V_material())
-									else
-										NewSubMtl
+								local	currentMtl = MaterialList[MtlID]
+								if (ClassOf currentMtl) == MultiMaterial then (
+									if currentMtl.MaterialList.Count > 0 then (
+										local	NewSubMtl = (GetStandartized currentMtl.MaterialList[1] NeedMultiMtl:false)
+										MaterialList[MtlID] = (
+											if NewSubMtl == OK then
+												(EGIMS_V_material())
+											else
+												NewSubMtl
+										)
+									)
+								) else (
+									local	NewSubMtl = (GetStandartized currentMtl NeedMultiMtl:false)
+									MaterialList[MtlID] = (
+										if NewSubMtl == OK then
+											(EGIMS_V_material())
+										else
+											NewSubMtl
+									)
 								)
 							)
 							if DoSort then
