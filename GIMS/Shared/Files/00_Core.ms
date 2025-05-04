@@ -78,7 +78,7 @@ catch (
 				EGIMS_EHStackLocals = false,
 				EGIMS_EHFFO = false,
 				/*MAX hacks*/
-				EGIMS_SuspendMAX, EGIMS_ResumeMAX, EGIMS_AutosaveMAX = false,
+				EGIMS_SuspendMAX, EGIMS_ResumeMAX, EGIMS_AutosaveMAX = false, isNetCore8MAX = ((MaxVersion())[1] / 1000 >= 28),
 				/*ChangeLog*/
 				LoadChangeLog, GetChangeLog,
 				/*GUI*/
@@ -1195,7 +1195,7 @@ fn GetTimeStamp = (
 													return System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(plainText));
 												}
 											}"
-								if ((maxVersion())[1] / 1000 > 27) then (
+								if isNetCore8MAX then (
 									try (
 										local	CSharpCompilationHelper = dotnetclass "CSharpUtilities.CSharpCompilationHelper",
 												FailureAssembly = CSharpCompilationHelper.compile source #()
@@ -10456,10 +10456,12 @@ fn GetTimeStamp = (
 			fn DisposeControl Contr = (
 				/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
 				/*<ERRHANDLERSTART>*/try (
-					local	Controls = Contr.Controls,
-							ControlItems = Controls.Item
-					for ID = Controls.Count to 1 by -1 do
-						DisposeControl ControlItems[ID - 1]
+					if not isNetCore8MAX then (
+						local	Controls = Contr.Controls,
+								ControlItems = Controls.Item
+						for ID = Controls.Count to 1 by -1 do
+							DisposeControl ControlItems[ID - 1]
+					)
 					try (
 						local	Tag = Contr.Tag
 						if
@@ -10528,7 +10530,7 @@ fn GetTimeStamp = (
 					MainWindow.StartPosition = MainWindow.StartPosition.Manual
 					MainWindow.Location = (DotNETObject "System.Drawing.Point" 20 ((ScreenResolution.y - WindowSize.y - 40) / 2))
 					SetLifetimeController MainWindow.Location #MXS
-					if ((maxVersion())[1] / 1000 < 28) then (DotNET.AddEventHandler MainWindow "Closed" ReInitMainWindow)
+					DotNET.AddEventHandler MainWindow "Closed" ReInitMainWindow
 					GUIMgr.MainWindow = (EGIMS_MainWindow = MainWindow)
 					SetLifetimeController GUIMgr.MainWindow #MXS
 					GUIMgr.WindowCreateTime = (GetTimeStamp())
@@ -12764,7 +12766,7 @@ fn GetTimeStamp = (
 			= (
 				/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
 				/*<ERRHANDLERSTART>*/try (
-				if ((maxVersion())[1] / 1000 > 27) then (
+				if isNetCore8MAX then (
 					local	CSharpCompilationHelper = dotnetclass "CSharpUtilities.CSharpCompilationHelper",
 							assembly = CSharpCompilationHelper.compile sourceString #(),
 							SetLifetimeController = GIMS.SetLifetimeController

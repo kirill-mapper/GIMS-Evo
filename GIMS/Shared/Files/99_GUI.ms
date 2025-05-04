@@ -716,7 +716,7 @@
 													return System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(plainText));
 												}
 											}"
-								if ((maxVersion())[1] / 1000 > 27) then (
+								if isNetCore8MAX then (
 									try (
 										local	CSharpCompilationHelper = dotnetclass "CSharpUtilities.CSharpCompilationHelper",
 												FailureAssembly = CSharpCompilationHelper.compile source #()
