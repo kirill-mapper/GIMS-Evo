@@ -4,52 +4,38 @@ Game Indefinite Modding Suite Evolved (GIMS Evo) is a script for 3D MAX, which a
 
 =====GAME SUPPORT=====
 
-Max Payne 3
+	Max Payne 3
 
-Ninja Ripper
+	Ninja Ripper
 
-GTA V
+	GTA V
 
 =====SYSTEM REQUIREMENTS=====
 
-PC:
+	OpenIV must be installed
 
-	RAM: minimum 2 Gb(with equal or bigger swap file), recommended 4 or more.
-	
-	Internet connection(for setup and updates).
-	
-Software:
+	Any 3D MAX version from 2014 to 2026.
 
-	Windows 7, or any newer version.
-	
-	.NET Framework 4.0.
-	
-	Any 3D MAX version from 9(with Service Pack 2 and "AvGuard DLX Extension") to 2016.
-	
-	Also, it's highly recommended to install the latest 3D MAX updates and service packs.
+=====INSTALLATION=====
+
+	Copy contents of 'Startup' to 3ds Max Startup folder (e.g. 'C:\Program Files\Autodesk\3ds Max 20**\scripts\Startup')
+
+	Copy 'GIMS' folder to System Local folder 'C:\Users\<username>\AppData\Local'
 
 =====CREDITS=====
 
-Developer: Mansurov Sergey a.K.a. 3Doomer
+	Developer: Mansurov Sergey a.K.a. 3Doomer
 
-Skype: treedoomer
+	Discord: 3doomer
 
-E-mail: 3Doomer2@gmail.com
+	E-mail: 3Doomer2@gmail.com
+
+=====CONTRIBUTOR=====
+
+	Discord: kirill_mapper
 
 =====LINKS=====
 
-Max Payne 3 script support:
+	Main forum: http://gtaforums.com/topic/836266-vrel-gims-evo-for-gta-v/
 
-	Russian forum: http://gtamaps.net/forum/index.php?showtopic=14862
-	
-	International forum: http://gtaforums.com/user/203669-3doomer/
-	
-Ninja Ripper script support:
-
-	Russian forum: http://cgig.ru/ninjaripper/
-	
-GTA V script support:
-
-	Russian forum: http://gtamaps.net/forum/index.php?showtopic=14920
-	
-	International forum: http://gtaforums.com/topic/836266-vrel-gims-evo-for-gta-v/
+	Update forum: https://gtaforums.com/topic/1000392-gims-evo-update/
