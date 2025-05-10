@@ -1253,12 +1253,16 @@ if (DoesFileExist EGIMS_CoreConfigFile) then (
 									for i = 1 to Buttons.Count do
 										ImageControl Buttons[i] Actions[i] Icons[i]
 								)
-								fn EnableGame Game Buttons = (
-									ChangeImages Buttons #(#Disable, #Enable, #Enable) #(#Download, #Delete, #Launch)
-								)
-								fn DisableGame Game Buttons = (
-									ChangeImages Buttons #(#Enable, #Disable, #Disable) #(#Download, #Delete, #Launch)
-								)
+								fn SetGameButtonState Game Buttons = (
+									local	BtnStates,
+											BtnTypes = #(#Download, #Delete, #Launch)
+									if not GIMS.IsDevBuild then (
+										BtnStates = if Game.Installed then #(#Disable, #Enable, #Enable) else #(#Enable, #Disable, #Disable)
+									) else (
+										BtnStates = if Game.Installed then #(#Disable, #Disable, #Enable) else #(#Disable, #Disable, #Disable)
+									)
+									ChangeImages Buttons BtnStates BtnTypes
+								)		
 								fn StartGame Game Buttons = (
 									if GIMS.CanExec then (
 										CallstackCapture.disable()
@@ -1295,10 +1299,7 @@ if (DoesFileExist EGIMS_CoreConfigFile) then (
 									local	GUI = GIMS.GUI
 									TipControl.Font = GUI.Font.Body.SemiBold
 									TipControl.ForeColor = GUI.Colour.CWhite
-									if Game.Installed then
-										EnableGame Game Buttons
-									else
-										DisableGame Game Buttons
+									SetGameButtonState Game Buttons
 								)
 								%
 								on InfoButton pressed do (
