@@ -617,7 +617,7 @@ SubItems:#(undefined,undefined,undefined,undefined,undefined,undefined,undefined
 GIMS.Core.GUI.GUI_Item \
 Name:"ArrangeBtn005" \
 Pos:[19100,-1140,0] \
-ItemSize:#(99,9) \
+ItemSize:#(78,9) \
 ItemType:2 \
 DefaultState:true \
 checkstate:true \
@@ -639,6 +639,66 @@ TextImageRelation:1 \
 EventTypes:#(1,1,1,1,1,2,1,1,1) \
 EventCores:#(2,2,2,2,2,1,2,2,2) \
 EventNames:#("Null","Null","Null","Null","Null","FixVertexColors","Null","Null","Null") \
+scrollable:false \
+ScrollOrient:1 \
+SubItems:#(undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined) \
+),
+(
+GIMS.Core.GUI.GUI_Item \
+Name:"UVsTick" \
+Pos:[19900,-1140,0] \
+ItemSize:#(9,9) \
+ItemType:6 \
+DefaultState:true \
+checkstate:false \
+SelectionMode:2 \
+groupID:1 \
+backColor:1 \
+Clickable:true \
+ItemText:"" \
+ItemContent:"" \
+font:3 \
+forecolor:2 \
+TextAlign:2 \
+ChangeIcon:true \
+icon:"Checked" \
+animated:false \
+iconSize:#(7,7) \
+ImageAlign:4 \
+TextImageRelation:1 \
+EventTypes:#(1,1,1,1,1,2,1,1,1) \
+EventCores:#(2,2,2,2,2,1,2,2,2) \
+EventNames:#("Null","Null","Null","Null","Null","Null","Null","Null","Null") \
+scrollable:false \
+ScrollOrient:1 \
+SubItems:#(undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined) \
+),
+(
+GIMS.Core.GUI.GUI_Item \
+Name:"UVsText" \
+Pos:[20000,-1140,0] \
+ItemSize:#(10,9) \
+ItemType:1 \
+DefaultState:true \
+checkstate:true \
+SelectionMode:2 \
+groupID:1 \
+backColor:1 \
+Clickable:false \
+ItemText:"UVs 2;3" \
+ItemContent:"" \
+font:6 \
+forecolor:2 \
+TextAlign:5 \
+ChangeIcon:false \
+icon:"Null" \
+animated:false \
+iconSize:#(7,7) \
+ImageAlign:4 \
+TextImageRelation:1 \
+EventTypes:#(1,1,1,1,1,1,1,1,1) \
+EventCores:#(2,2,2,2,2,2,2,2,2) \
+EventNames:#("Null","Null","Null","Null","Null","Null","Null","Null","Null") \
 scrollable:false \
 ScrollOrient:1 \
 SubItems:#(undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined) \

@@ -1016,6 +1016,8 @@
 			/*<PROFILERSTART>*//*LogProfiler #Start (local SS = (StringStream ""); Stack ShowLocals:false FirstFrameOnly:true To:SS; SS); local PWS = (*//*<PROFILERSTARTED>*/
 			/*<ERRHANDLERSTART>*/try (
 				if args.Button.value__ == 1048576 then (
+					local	UVsTick = (GIMS.Core.GUIMgr.FindControl #UVsTick),
+							SelectUVs = UVsTick.Tag.Value.CheckState
 					undo "Fix Vertex Colors" on (
 						fn swap_uvw_channels obj polyMesh channel1 channel2 =
 						(
@@ -1057,8 +1059,8 @@
 							)
 							if subobjectLevel != 0 then subobjectLevel = 0
 							local	Tobj = copy obj,
-									swapChannels = #(0, -1, -2),
-									namesChannels = #(" 0:Color","-1:Illum","-2:Alpha")
+									swapChannels = if SelectUVs then #(0, -1, -2, 2, 3) else #(0, -1, -2),
+									namesChannels = if SelectUVs then #(" 0:Color","-1:Illum","-2:Alpha"," 2:UVmap"," 3:UVmap") else #(" 0:Color","-1:Illum","-2:Alpha")
 							for i = 1 to swapChannels.count do
 							(
 								local	currentChannel = 1,
@@ -1082,7 +1084,7 @@
 									subobjectLevel = 1
 									local numVertsBefore = polyMesh.getNumMapVerts Tobj.baseobject currentChannel
 									Tobj.modifiers[#unwrap_uvw].unwrap6.selectVerticesByNode #{1..numVertsBefore} Tobj
-									Tobj.modifiers[#unwrap_uvw].unwrap.setWeldThreshold 0.01
+									Tobj.modifiers[#unwrap_uvw].unwrap.setWeldThreshold 0.001 --Safe for Tint Palettes
 									Tobj.modifiers[#unwrap_uvw].unwrap.weldSelected()
 									maxOps.CollapseNodeTo Tobj (modPanel.getModifierIndex Tobj Tobj.modifiers[#Unwrap_UVW]) on
 									local numVertsAfter = polyMesh.getNumMapVerts Tobj.baseobject currentChannel
