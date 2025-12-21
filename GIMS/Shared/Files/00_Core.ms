@@ -3959,63 +3959,64 @@ fn GetTimeStamp = (
 						)
 						UpdateProgress #None 0
 						
-						/*--apply phys normals
-						for i = 1 to VertPosCount do
-							SetNormal Result i VertNormals[i]
-						UpdateProgress #None 0*/
-						
-						--get faces
-						if not SuppliedFaces then (
-							Faces = #()
-							for i = FaceCount to 1 by -1 do
-								Faces[i] = (GetFace Result i)
-						)
-						UpdateProgress #None 0
-						
-						--apply normals
-						local	NormalsMod = (Edit_Normals())
-						AddModifier Result NormalsMod
-						EGIMS_SelectModifier NormalsMod
-						local	AllVerts = #{1..VertPosCount}
-						NormalsMod.MakeExplicit Selection:AllVerts
-						Free AllVerts
-						local	NMGetNormalID = NormalsMod.GetNormalID,
-								NMSetNormal = NormalsMod.SetNormal
-						if HaveCoordsysTM then (
+						if ((MaxVersion())[1] / 1000 >= 17) then (
+							--apply phys normals
+							for i = 1 to VertPosCount do
+								SetNormal Result i VertNormals[i]
+							UpdateProgress #None 0
+						) else (
+							--get faces
+							if not SuppliedFaces then (
+								Faces = #()
+								for i = FaceCount to 1 by -1 do
+									Faces[i] = (GetFace Result i)
+							)
+							UpdateProgress #None 0
+							
+							--apply normals
+							local	NormalsMod = (Edit_Normals())
+							AddModifier Result NormalsMod
+							EGIMS_SelectModifier NormalsMod
+							local	AllVerts = #{1..VertPosCount}
+							NormalsMod.MakeExplicit Selection:AllVerts
+							Free AllVerts
+							local	NMGetNormalID = NormalsMod.GetNormalID,
+									NMSetNormal = NormalsMod.SetNormal
+							if HaveCoordsysTM then (
+								for FaceID = 1 to FaceCount do (
+									local	Face = Faces[FaceID]
+									for CornerID = 1 to 3 do
+										NMSetNormal (NMGetNormalID FaceID CornerID) VertNormals[Face[CornerID]]
+								)
+							) else (	--not HaveCoordsysTM
+								for FaceID = 1 to FaceCount do (
+									local	Face = Faces[FaceID]
+									for CornerID = 1 to 3 do
+										NMSetNormal (NMGetNormalID FaceID CornerID) VertNormals[Face[CornerID]]
+								)
+							)
+							
+							/*TODO remove, normals debug*
+							local	tLine = (SplineShape Name:"Normals" Parent:Result WireColor:Blue),
+									SplineCount = 0,
+									Verts = #()
+							for i = VertPosCount to 1 by -1 do
+								Verts[i] = (GetVert Result i)
 							for FaceID = 1 to FaceCount do (
 								local	Face = Faces[FaceID]
-								for CornerID = 1 to 3 do
-									NMSetNormal (NMGetNormalID FaceID CornerID) VertNormals[Face[CornerID]]
+								for CornerID = 1 to 3 do (
+									local	VertID = Face[CornerID]
+									AddNewSpline tLine
+									SplineCount += 1
+									local	BasePoint = Verts[VertID]
+									AddKnot tLine SplineCount #Corner #Line BasePoint
+									AddKnot tLine SplineCount #Corner #Line (BasePoint + (VertNormals[VertID] / 50))
+								)
 							)
-						) else (	--not HaveCoordsysTM
-							for FaceID = 1 to FaceCount do (
-								local	Face = Faces[FaceID]
-								for CornerID = 1 to 3 do
-									NMSetNormal (NMGetNormalID FaceID CornerID) VertNormals[Face[CornerID]]
-							)
+							UpdateShape tLine
+							Free Verts
+							/**/
 						)
-						
-						/*TODO remove, normals debug*
-						local	tLine = (SplineShape Name:"Normals" Parent:Result WireColor:Blue),
-								SplineCount = 0,
-								Verts = #()
-						for i = VertPosCount to 1 by -1 do
-							Verts[i] = (GetVert Result i)
-						for FaceID = 1 to FaceCount do (
-							local	Face = Faces[FaceID]
-							for CornerID = 1 to 3 do (
-								local	VertID = Face[CornerID]
-								AddNewSpline tLine
-								SplineCount += 1
-								local	BasePoint = Verts[VertID]
-								AddKnot tLine SplineCount #Corner #Line BasePoint
-								AddKnot tLine SplineCount #Corner #Line (BasePoint + (VertNormals[VertID] / 50))
-							)
-						)
-						UpdateShape tLine
-						Free Verts
-						/**/
-						
 					)
 			/*<ERRHANDLER>*/) catch (local	CET = (GetCurrentException()),ESS;if not (MatchPattern CET Pattern:"*<THROW>*") then (ESS = (StringStream "");Stack ShowLocals:EGIMS_EHStackLocals FirstFrameOnly:EGIMS_EHFFO To:ESS); EGIMS_EHError CET ESS AddInfo:#(
 			#(

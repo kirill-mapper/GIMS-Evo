@@ -2698,6 +2698,10 @@
 			Type						Type:#Integer	Default:1		UI:Type
 			FixVCs						Type:#Boolean	Default:true	UI:chkFixVCs
 			FixNRMs						Type:#Boolean	Default:true	UI:chkFixNRMs
+			FixUVs						Type:#Boolean	Default:true	UI:chkFixUVs
+			ThrVCs						Type:#Float		Default:0.0001	UI:spVCs
+			ThrNRMs						Type:#Float		Default:0.0001	UI:spNRMs
+			ThrUVs						Type:#Float		Default:0.0001	UI:spUVs
 			SaveOp						Type:#Boolean	Default:true	UI:chkSaveOp
 		)
 		rollout Rol "Max Payne 3 model mesh" (
@@ -2705,11 +2709,25 @@
 			RadioButtons	Type						Columns:2				Labels:#("High", "Medium", "Low", "Very low")
 			)
 			Group "Optimize Vertex" (
-			checkbox		chkFixVCs					"Colors"			Across:2			
-			checkbox		chkFixNRMs					"Normals"							
+			checkbox		chkFixVCs					"Colors"								Across:2
+			Spinner			spVCs						Type:#Float		Range:[0, 10, 0.0001]	Align:#Left		Width:65	Scale:0.0001
+			checkbox		chkFixNRMs					"Normals"								Across:2
+			Spinner			spNRMs						Type:#Float		Range:[0, 10, 0.0001]	Align:#Left		Width:65	Scale:0.0001
+			checkbox		chkFixUVs					"UVs"									Across:2
+			Spinner			spUVs						Type:#Float		Range:[0, 10, 0.0001]	Align:#Left		Width:65	Scale:0.0001
 			)
 			Group "Options" (
 			checkbox		chkSaveOp					"Export Copy"		Align:#Center						
+			)
+			
+			on chkFixVCs changed state do (spVCs.enabled = state)
+			on chkFixNRMs changed state do (spNRMs.enabled = state)
+			on chkFixUVs changed state do (spUVs.enabled = state)
+			
+			on Rol open do (
+				spVCs.enabled = chkFixVCs.checked
+				spNRMs.enabled = chkFixNRMs.checked
+				spUVs.enabled = chkFixUVs.checked
 			)
 		)
 	)
@@ -4288,6 +4306,10 @@
 			Mask	Type:#Integer	Default:255		UI:Mask
 			FixVCs	Type:#Boolean	Default:true	UI:chkFixVCs
 			FixNRMs	Type:#Boolean	Default:true	UI:chkFixNRMs
+			FixUVs	Type:#Boolean	Default:true	UI:chkFixUVs
+			ThrVCs	Type:#Float		Default:0.0001	UI:spVCs
+			ThrNRMs	Type:#Float		Default:0.0001	UI:spNRMs
+			ThrUVs	Type:#Float		Default:0.0001	UI:spUVs
 			SaveOp	Type:#Boolean	Default:true	UI:chkSaveOp
 		)
 		rollout Rol "GTA V model mesh" (
@@ -4306,7 +4328,11 @@
 			)
 			Group "Optimize Vertex" (
 			checkbox		chkFixVCs					"Colors"								Across:2
-			checkbox		chkFixNRMs					"Normals"										
+			Spinner			spVCs						Type:#Float		Range:[0, 10, 0.0001]	Align:#Left		Width:65	Scale:0.0001
+			checkbox		chkFixNRMs					"Normals"								Across:2
+			Spinner			spNRMs						Type:#Float		Range:[0, 10, 0.0001]	Align:#Left		Width:65	Scale:0.0001
+			checkbox		chkFixUVs					"UVs"									Across:2
+			Spinner			spUVs						Type:#Float		Range:[0, 10, 0.0001]	Align:#Left		Width:65	Scale:0.0001
 			)
 			Group "Options" (
 			checkbox		chkSaveOp					"Export Copy"										Align:#Center						
@@ -4340,8 +4366,15 @@
 			on chkMirror changed state do updateMask()
 			on chkWater changed state do updateMask()
 
+			on chkFixVCs changed state do (spVCs.enabled = state)
+			on chkFixNRMs changed state do (spNRMs.enabled = state)
+			on chkFixUVs changed state do (spUVs.enabled = state)
+
 			on Rol open do (
 				updateCheckboxes Mask.value
+				spVCs.enabled = chkFixVCs.checked
+				spNRMs.enabled = chkFixNRMs.checked
+				spUVs.enabled = chkFixUVs.checked
 			)
 		)
 	)

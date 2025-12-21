@@ -930,6 +930,14 @@
 																NeedTotalAABB = (GroupCount > 1),
 																TotalAABB = (if NeedTotalAABB then (GIMS.Core.TypeLibrary.AABB())),
 																MatBounds = #(),
+																HashFmtStr = "%,",
+																HashValueSS = (StringStream ""),
+																useVCValues = (ParamSource.FixVCs and ParamSource.ThrVCs > 0),
+																useNRMValues = (ParamSource.FixNRMs and ParamSource.ThrNRMs > 0),
+																useUVValues = (ParamSource.FixUVs and ParamSource.ThrUVs > 0),
+																vcMult = (if useVCValues then 1.0 / ParamSource.ThrVCs),
+																nrmMult = (if useNRMValues then 1.0 / ParamSource.ThrNRMs),
+																uvMult = (if useUVValues then 1.0 / ParamSource.ThrUVs),
 																VertHashToIndexMap = dotNetObject "System.Collections.Hashtable"(),
 																OldProgressData
 														Geometries.Count = GroupCount
@@ -968,45 +976,51 @@
 																
 																	--calculate vertex hash
 																	local	PhysVertID = Face[SubVertID],
-																			ColorVertID, MapVertIDs, NormalsVertID, TangentVertID,
-																			HashValue = PhysVertID as integer,
-																			prime1 = 31,
-																			prime2 = 37
+																			ColorVertID, MapVertIDs, NormalsVertID, TangentVertID
+																	Format HashFmtStr (PhysVertID as Integer) To:HashValueSS
 																	if NeedColors then (
 																		ColorVertID = ColorFace[SubVertID]
 																		local colorRGBA = ColorVerts[ColorVertID]
-																		if ParamSource.FixVCs then (
-																			HashValue = (HashValue * prime1) + (floor(colorRGBA[1] * 1000 + 0.5)) as integer
-																			HashValue = (HashValue * prime2) + (floor(colorRGBA[2] * 1000 + 0.5)) as integer
-																			HashValue = (HashValue * prime1) + (floor(colorRGBA[3] * 1000 + 0.5)) as integer
-																			HashValue = (HashValue * prime2) + (floor(colorRGBA[4] * 1000 + 0.5)) as integer
+																		if useVCValues then (
+																			Format HashFmtStr ((floor(colorRGBA[1] * vcMult)) as Integer) To:HashValueSS
+																			Format HashFmtStr ((floor(colorRGBA[2] * vcMult)) as Integer) To:HashValueSS
+																			Format HashFmtStr ((floor(colorRGBA[3] * vcMult)) as Integer) To:HashValueSS
+																			Format HashFmtStr ((floor(colorRGBA[4] * vcMult)) as Integer) To:HashValueSS
 																		) else (
-																			HashValue = (HashValue * prime1) + (ColorVertID as integer)
+																			Format HashFmtStr (ColorVertID as Integer) To:HashValueSS
 																		)
 																	)
 																	if NeedUVs then (
 																		MapVertIDs = #()
 																		for ChID = RAWUVCount to 1 by -1 do (
-																			local	MapVertID = RAWMapFaceGroups[ChID][FaceID][SubVertID]
+																			local MapVertID = RAWMapFaceGroups[ChID][FaceID][SubVertID]
 																			MapVertIDs[ChID] = MapVertID
-																			HashValue = (HashValue * prime1) + (MapVertID as integer)
+																			if useUVValues then (
+																				local uvCoord = RAWMapVertGroups[ChID][MapVertID]
+																				Format HashFmtStr ((floor(uvCoord.x * uvMult)) as Integer) To:HashValueSS
+																				Format HashFmtStr ((floor(uvCoord.y * uvMult)) as Integer) To:HashValueSS
+																			) else (
+																				Format HashFmtStr (MapVertID as Integer) To:HashValueSS
+																			)
 																		)
 																	)
 																	if NeedNormals then (
 																		NormalsVertID = NormalsFace[SubVertID]
 																		local normalXYZ = NormalsVectors[NormalsVertID]
-																		if ParamSource.FixNRMs then (
-																			HashValue = (HashValue * prime1) + (floor(normalXYZ.x * 1000 + 0.5)) as integer
-																			HashValue = (HashValue * prime2) + (floor(normalXYZ.y * 1000 + 0.5)) as integer
-																			HashValue = (HashValue * prime1) + (floor(normalXYZ.z * 1000 + 0.5)) as integer
+																		if useNRMValues then (
+																			Format HashFmtStr ((floor(normalXYZ.x * nrmMult)) as Integer) To:HashValueSS
+																			Format HashFmtStr ((floor(normalXYZ.y * nrmMult)) as Integer) To:HashValueSS
+																			Format HashFmtStr ((floor(normalXYZ.z * nrmMult)) as Integer) To:HashValueSS
 																		) else (
-																			HashValue = (HashValue * prime1) + (NormalsVertID as integer)
+																			Format HashFmtStr (NormalsVertID as Integer) To:HashValueSS
 																		)
 																	)
 																	if NeedTangents then (
 																		TangentVertID = TangentFace[SubVertID]
-																		HashValue = (HashValue * prime1) + (TangentVertID as integer)
-																	)	
+																	--	Format HashFmtStr (TangentVertID as Integer) To:HashValueSS
+																	)
+																	local	HashValue = (HashValueSS as String)
+																	Free HashValueSS
 																
 																	--find place for the vertex
 																	local   VertID

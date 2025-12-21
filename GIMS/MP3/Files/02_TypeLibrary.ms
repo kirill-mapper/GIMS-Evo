@@ -1164,7 +1164,7 @@
 						local	TempMesh = (tMesh.Create BoneNodes MMtl)
 						if TempMesh != false then (
 							TempMesh.Material = MMtl
-							AddModifier TempMesh (EGIMS_MP3_ModelMesh Type:LODGrpID FixVCs:false FixNRMs:false SaveOp:false)
+							AddModifier TempMesh (EGIMS_MP3_ModelMesh Type:LODGrpID FixUVs:false FixVCs:false FixNRMs:false SaveOp:false)
 						)
 					)
 				)

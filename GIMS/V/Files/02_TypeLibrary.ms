@@ -3791,7 +3791,7 @@
 									GeometryFlags[FlagID] = true
 							)
 							TempMesh.Material = MMtl
-							AddModifier TempMesh (EGIMS_V_ModelMesh Type:LODGrpID Mask:tMesh.Mask FixVCs:false FixNRMs:false SaveOp:false)
+							AddModifier TempMesh (EGIMS_V_ModelMesh Type:LODGrpID Mask:tMesh.Mask FixUVs:false FixVCs:false FixNRMs:false SaveOp:false)
 						)
 					)
 				)
