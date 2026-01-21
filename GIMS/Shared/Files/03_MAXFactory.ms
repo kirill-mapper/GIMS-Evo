@@ -386,7 +386,7 @@ global	EGIMS_SetModRules,
 		MaterialOps = (strMaterialOps())
 	)
 	GIMS.CurrentGame.Core.MAXFactory = strMAXFactory()
-	UnRegisterRedrawViewsCallback EGIMS_VPRedrawCallback
+	try (UnRegisterRedrawViewsCallback EGIMS_VPRedrawCallback) catch ()
 	fn EGIMS_VPRedrawCallback = (
 		/*<ERRHANDLERSTART>*/try (
 			local	Result = (Have GIMS)

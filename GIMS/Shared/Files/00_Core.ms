@@ -851,7 +851,7 @@ fn GetTimeStamp = (
 	)
 	
 	/*Cleanup*/
-	UnRegisterRedrawViewsCallback EGIMS_VPRedrawCallback
+	try (UnRegisterRedrawViewsCallback EGIMS_VPRedrawCallback) catch ()
 	Callbacks.RemoveScripts #SceneNodeAdded ID:#EGIMS_SetLocks
 	Callbacks.RemoveScripts #PostModifierAdded ID:#EGIMS_SetModRules
 	Callbacks.RemoveScripts #SelectionSetChanged ID:#EGIMS_MP3_matlist_GetMaterial
